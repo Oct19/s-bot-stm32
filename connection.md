@@ -1,0 +1,30 @@
+# Connection diagram
+
+## Pins and Wiring
+
+Beside the usual `VCC` and `GND` pins, the following pins are used:
+
+* STM USB PORT - COMPUTER USB PORT
+* STM PB10 (`I2C2_SCL`) - OLED SCL
+
+* STM PC12 (`I2C2 SDA`) - OLED SDA
+* STM PB7  (`LIMIT_A`) - LIMIT SWITCH A NO
+
+* STM PB6  (`LIMIT_B`) - LIMIT SWITCH B NO
+
+---
+
+* STM PB12 (`ENA`) - STEP DRIVER ENA-
+* STM PB13 (`DIR0`) - STEP DRIVER 0 DIR-
+
+* STM PB14 (`PUL0`) - STEP DRIVER 0 PUL-
+* STEP DRIVER ENA+ - 5V
+
+* STEP DRIVER DIR+ - 5V
+* STEP DRIVER PUL+ - 5V
+
+* STEP DRIVER A+ - MOTOR RED
+* STEP DRIVER A- - MOTOR BLUE
+
+* STEP DRIVER B+ - MOTOR BLACK
+* STEP DRIVER B- - MOTOR BLUE

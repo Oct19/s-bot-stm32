@@ -18,6 +18,9 @@ extern osTimerId_t OLED_Warning_TimeoutHandle;
 extern osTimerId_t OLED_Tx_TimeoutHandle;
 extern osTimerId_t OLED_Rx_TimeoutHandle;
 
+/* Message to display contains special character */
+char OLED_ERROR_MSG[8] = "????????";
+
 void OLED_Init(void);
 void OLED_display_Warning(void);
 void OLED_display_TxRx(void);
@@ -25,9 +28,9 @@ void OLED_display_Info(void);
 
 void OLEDdisplay(void *argument)
 {
-    OLED_Init();
     for (;;)
     {
+
         if (OLED.Warning[0])
             OLED_display_Warning();
         else if (OLED.Rx[0] | OLED.Tx[0])
@@ -45,8 +48,8 @@ void OLED_Init(void)
     memset(OLED.Warning, '\0', OLED_WARNING_SIZE);
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
     memset(OLED.Rx, '\0', OLED_RX_SIZE);
+    memset(OLED.Info, '\0', OLED_INFO_SIZE);
 }
-
 /**
  * @brief for testing purposes
  *
@@ -72,10 +75,18 @@ void OLED_display_TxRx(void)
     ssd1306_Fill(Black);
     // First row: Tx
     ssd1306_SetCursor(0, 0);
-    ssd1306_WriteString((char *)OLED.Tx, Font_7x10, White);
+    if (ssd1306_WriteString((char *)OLED.Tx, Font_7x10, White))
+    {
+        /* Contains special character that cannot display */
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+    }
     // Second row: Rx
     ssd1306_SetCursor(0, 20);
-    ssd1306_WriteString((char *)OLED.Rx, Font_7x10, White);
+    if(ssd1306_WriteString((char *)OLED.Rx, Font_7x10, White))
+    {
+        /* Contains special character that cannot display */
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+    }
     ssd1306_UpdateScreen();
 }
 
@@ -104,7 +115,11 @@ void OLED_display_Info(void)
     ssd1306_WriteString(str, Font_7x10, White);
     // Second row: Positions
     ssd1306_SetCursor(0, 20);
-    ssd1306_WriteString((char *)OLED.Info, Font_7x10, White);
+    if (ssd1306_WriteString((char *)OLED.Info, Font_7x10, White))
+    {
+        /* Contains special character that cannot display */
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+    }
     ssd1306_UpdateScreen();
 }
 /**
@@ -122,22 +137,28 @@ void OLED_Update_Warning(uint8_t *msg, size_t size)
 {
     memset(OLED.Warning, '\0', OLED_WARNING_SIZE);
     memcpy(OLED.Warning, msg, min(OLED_WARNING_SIZE, size));
-    osTimerStart(OLED_Warning_TimeoutHandle, OLED_MESSAGE_LINGER_MS);
+    xTimerChangePeriodFromISR(OLED_Warning_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
 }
 
+/**
+ * @brief Called from HAL_UARTEx_RxEventCallback
+ *
+ * @param Rx
+ * @param size
+ */
 void OLED_Update_Rx(uint8_t *Rx, size_t size)
 {
     memset(OLED.Rx, '\0', OLED_RX_SIZE);
     memcpy(OLED.Rx, Rx, min(OLED_RX_SIZE, size));
-
-    osTimerStart(OLED_Rx_TimeoutHandle, OLED_MESSAGE_LINGER_MS);
+    /* Timer start during ISR */
+    xTimerChangePeriodFromISR(OLED_Rx_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
 }
 
 void OLED_Update_Tx(uint8_t *Tx, size_t size)
 {
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
     memcpy(OLED.Tx, Tx, min(OLED_TX_SIZE, size));
-    osTimerStart(OLED_Tx_TimeoutHandle, OLED_MESSAGE_LINGER_MS);
+    xTimerChangePeriodFromISR(OLED_Tx_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
 }
 
 /* OLED_Tx_Timeout_Callback function */

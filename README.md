@@ -13,6 +13,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 ## Bug
 
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
+* Sometimes OLED screen stuck, need to off power and restart
 
 ## TODO
 
@@ -22,6 +23,8 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [ ] Robot state
 * [ ] Update README
 * [ ] Update connection diagram
+* [ ] Capture return error from ssdWriteString
+* [ ] Use FreeRTOS queue, Semaphore, Event, etc
 
 ## Fixed Issue
 
@@ -29,6 +32,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * Sometimes PlatformIO need to build twice to build successfully, or after Clean All
 * sprintf print use big flash size. Switch to customized printf, see printf.c and printf.h
 * [Linux RS485 to USB device cannot connect]([https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip))
+* FreeRTOS Timer cannot be started during interrupt. Use `xTimerStartFromISR` instead. Also check IRQ priority level
 
 ## References
 
@@ -41,3 +45,4 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [GRBL stm32]([https://github.com/dungjk/grbl-stm32](https://github.com/dungjk/grbl-stm32))
 * [Stepper S-Curve]([https://github.com/MGDG/SLineControl](https://github.com/MGDG/SLineControl))
 * [UART with DMA and FreeRTOS](https://www.devcoons.com/stm32-uart-receive-unknown-size-data-using-dma-and-freertos/)
+* [[野火]FreeRTOS 内核实现与应用开发实战—基于RT1052](https://doc.embedfire.com/rtos/freertos/i.mx_rt1052/zh/latest/application/message_queue.html)

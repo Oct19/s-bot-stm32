@@ -11,6 +11,7 @@ extern "C"
 #include "stm32f4xx_hal.h"
 #include "stdlib.h"
 #include "stdbool.h"
+#include "ctype.h"
 #include "string.h"
 #include "stdint.h"
 #include "math.h"
@@ -22,7 +23,11 @@ extern "C"
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
+
 #include "FreeRTOS.h"
+#include "timers.h"
+#include "task.h"
+
 #include "ssd1306.h"
 #include "USBserial.h"
 #include "OLEDdisplay.h"
@@ -36,6 +41,7 @@ extern "C"
     } ROBOT_STATE_HandleTypeDef;
 
     extern ROBOT_STATE_HandleTypeDef ROBOT_STATE;
+
 
 #ifdef __cplusplus
 }

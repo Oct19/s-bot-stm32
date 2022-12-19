@@ -15,7 +15,7 @@ extern "C"
 
 
 
-#define USB_ECHO 1
+#define USB_ECHO 0
 
 extern uint8_t USB_Tx[USB_TX_SIZE];
 extern uint8_t USB_Rx[USB_RX_SIZE];

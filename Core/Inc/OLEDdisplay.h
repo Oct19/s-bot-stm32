@@ -34,7 +34,7 @@ extern "C"
 #define OLED_INFO_SIZE OLED_LONG_MESSAGE_SIZE
 
 #define OLED_MESSAGE_LINGER_MS 1000 // if no new message to display in current priority level
-#define OLED_FPS 5                 // 1 ~ 10
+#define OLED_FPS 10                 // 1 ~ 10
 
     typedef struct _OLED_HandleTypeDef
     {
@@ -46,6 +46,7 @@ extern "C"
 
     extern OLED_HandleTypeDef OLED;
 
+    void OLED_Init(void);
     void OLED_display_welcome(void);
     void OLED_display_off(void);
     void OLED_Update_Warning(uint8_t *msg, size_t size);

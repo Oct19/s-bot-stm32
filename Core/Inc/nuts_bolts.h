@@ -38,56 +38,66 @@
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
 #ifdef COREXY
- #define A_MOTOR X_AXIS // Must be X_AXIS
- #define B_MOTOR Y_AXIS // Must be Y_AXIS
+#define A_MOTOR X_AXIS // Must be X_AXIS
+#define B_MOTOR Y_AXIS // Must be Y_AXIS
 #endif
 
 // Conversions
 #define MM_PER_INCH (25.40f)
 #define INCH_PER_MM (0.0393701f)
-#define TICKS_PER_MICROSECOND (F_CPU/1000000)
+#define TICKS_PER_MICROSECOND (F_CPU / 1000000)
 
 // math constant
 #define pi 3.1415926
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
-#define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
+#define clear_vector_float(a) memset(a, 0.0, sizeof(float) * N_AXIS)
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define isequal_position_vector(a, b) !(memcmp(a, b, sizeof(float) * N_AXIS))
 
 // Bit field and masking macros
 #define bit(n) (1 << n)
-#define bit_true(x,mask) (x) |= (mask)
-#define bit_false(x,mask) (x) &= ~(mask)
-#define bit_istrue(x,mask) ((x & mask) != 0)
-#define bit_isfalse(x,mask) ((x & mask) == 0)
+#define bit_true(x, mask) (x) |= (mask)
+#define bit_false(x, mask) (x) &= ~(mask)
+#define bit_istrue(x, mask) ((x & mask) != 0)
+#define bit_isfalse(x, mask) ((x & mask) == 0)
 
 // Bit operations
-#define bit_set(reg, bit) ((reg) |=  (1 << (bit)))
+#define bit_set(reg, bit) ((reg) |= (1 << (bit)))
 #define bit_clr(reg, bit) ((reg) &= ~(1 << (bit)))
-#define bit_tgl(reg, bit) ((reg) ^=  (1 << (bit)))
+#define bit_tgl(reg, bit) ((reg) ^= (1 << (bit)))
 #define bit_get(reg, bit) ((reg) & (1 << (bit)))
 #define bit_put(reg, bit, val) ((reg) = (reg) & ~(1 << (bit)) | ((val) << (bit)))
-inline uint16_t htons(const uint16_t v) {
-	return v << 8 | v >> 8;
+inline uint16_t htons(const uint16_t v)
+{
+  return v << 8 | v >> 8;
 }
 
-#define ARRAY_LEN(x)            (sizeof(x) / sizeof((*x)))
+#define ARRAY_LEN(x) (sizeof(x) / sizeof((*x)))
+
+/* A Struct for hold 2D-array with count items */
+typedef struct _ListWithLength
+{
+  char **list;
+  size_t length;
+} ListWithLength;
+
+ListWithLength* getWords(char *text);
+void printListWithLength(ListWithLength *list_with_length);
 
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds
 uint8_t read_float(char *line, uint8_t *char_counter, float *float_ptr);
 
-
 // Computes hypotenuse, avoiding avr-gcc's bloated version and the extra error checking.
 float hypot_f(float x, float y);
 
 float convert_delta_vector_to_unit_vector(float *vector);
 float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
-uint16_t ModRTU_CRC(uint8_t* buf, int len);
+uint16_t ModRTU_CRC(uint8_t *buf, int len);
 
 #endif

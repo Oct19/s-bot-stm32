@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +58,7 @@ const osThreadAttr_t LEDblinkTask_attributes = {
 osThreadId_t OLEDdisplayTaskHandle;
 const osThreadAttr_t OLEDdisplayTask_attributes = {
   .name = "OLEDdisplayTask",
-  .stack_size = 256 * 4,
+  .stack_size = 300 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for UARTparserTask */
@@ -127,7 +127,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+  OLED_Init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -146,7 +146,7 @@ void MX_FREERTOS_Init(void) {
   OLED_Warning_TimeoutHandle = osTimerNew(OLED_Warning_Timeout_Callback, osTimerOnce, NULL, &OLED_Warning_Timeout_attributes);
 
   /* creation of OLED_Rx_Timeout */
-  OLED_Rx_TimeoutHandle = osTimerNew(OLED_Rx_Timeout_Callback, osTimerPeriodic, NULL, &OLED_Rx_Timeout_attributes);
+  OLED_Rx_TimeoutHandle = osTimerNew(OLED_Rx_Timeout_Callback, osTimerOnce, NULL, &OLED_Rx_Timeout_attributes);
 
   /* creation of USB_Hello */
   USB_HelloHandle = osTimerNew(USB_Hello_Callback, osTimerPeriodic, NULL, &USB_Hello_attributes);
@@ -187,16 +187,16 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_LEDblink */
 /**
-  * @brief  Function implementing the LEDblinkTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the LEDblinkTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_LEDblink */
 void LEDblink(void *argument)
 {
   /* USER CODE BEGIN LEDblink */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     osDelay(1000);
@@ -206,16 +206,16 @@ void LEDblink(void *argument)
 
 /* USER CODE BEGIN Header_OLEDdisplay */
 /**
-* @brief Function implementing the OLEDdisplayTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the OLEDdisplayTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_OLEDdisplay */
 __weak void OLEDdisplay(void *argument)
 {
   /* USER CODE BEGIN OLEDdisplay */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -224,16 +224,16 @@ __weak void OLEDdisplay(void *argument)
 
 /* USER CODE BEGIN Header_UARTparser */
 /**
-* @brief Function implementing the UARTparserTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the UARTparserTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_UARTparser */
 __weak void UARTparser(void *argument)
 {
   /* USER CODE BEGIN UARTparser */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -242,16 +242,16 @@ __weak void UARTparser(void *argument)
 
 /* USER CODE BEGIN Header_Stepper */
 /**
-* @brief Function implementing the StepperTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the StepperTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_Stepper */
 __weak void Stepper(void *argument)
 {
   /* USER CODE BEGIN Stepper */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -260,16 +260,16 @@ __weak void Stepper(void *argument)
 
 /* USER CODE BEGIN Header_USBserial */
 /**
-* @brief Function implementing the USBserialTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the USBserialTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_USBserial */
 __weak void USBserial(void *argument)
 {
   /* USER CODE BEGIN USBserial */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }

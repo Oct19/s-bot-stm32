@@ -2,7 +2,6 @@
 
 uint8_t USB_Tx[USB_TX_SIZE];
 uint8_t USB_Rx[USB_RX_SIZE];
-uint8_t USB_Rx_Buf[USB_RX_SIZE];
 
 uint16_t oldPos = 0;
 uint16_t newPos = 0;
@@ -16,13 +15,13 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 
 void USBserial(void *argument)
 {
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx_Buf, USB_RX_SIZE);
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx, USB_RX_SIZE);
     /* Disable half-transferred interrupt */
     __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
     for (;;)
     {
-        USBserial_Hello(5000);
-        USBserial_Execute_Command();
+        // USBserial_Hello(50);
+
         osDelay(1);
     }
 }
@@ -61,42 +60,36 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
     if (huart->Instance == USART2)
     {
-        memcpy(USB_Rx, USB_Rx_Buf, Size);
-        memset(USB_Rx_Buf, '\0', Size);
-
-        /* start the DMA again */
-        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *)USB_Rx_Buf, USB_RX_SIZE);
-        __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
-
-        /****************** PROCESS (Little) THE DATA HERE *********************/
-
-        for (int i = 0; i < Size; i++)
-        {
-            if ((USB_Rx[i] == 'M') && (USB_Rx[i + 1] == 'O') && (USB_Rx[i + 2] == 'T'))
-            {
-                isOK = 1;
-            }
-        }
-
+        /* Echo back Rx */
         if (USB_ECHO)
             HAL_UART_Transmit(&huart2, USB_Rx, Size, 10);
+
+        /* Update OLED Message */
+        OLED_Update_Rx(USB_Rx, Size);
+
+        /* Read and Execute */
+        USBserial_Execute_Command();
+
+        /* Clear Rx buffer */
+        memset(USB_Rx, '\0', Size);
+
+        /* start the DMA again */
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx, USB_RX_SIZE);
+        __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
     }
 }
 
+/**
+ * @brief Slice, read and execute
+ * @todo Use a new slicing function that slice by ' ' instead
+ * 
+ */
 void USBserial_Execute_Command(void)
 {
-    if (!USB_Rx[0])
-    {
-        return;
-    }
+    /* Step 1: Slice Rx into 2D arrays */
+    ListWithLength *instruction = getWords((char *)USB_Rx);
 
-    /* Update OLED Message */
-    OLED_Update_Rx(USB_Rx, USB_RX_SIZE);
-
-    memset(USB_Rx, '\0', USB_RX_SIZE);
+    /* Use OLED.Info to show number of words */
+    memset(OLED.Info, '\0', OLED_INFO_SIZE);
+    itoa(instruction->length, (char *)OLED.Info, 10);
 }
-
-// void _putchar(char character)
-// {
-//     HAL_UART_Transmit(&huart2, (uint8_t) & character, 1, 100);
-// }
