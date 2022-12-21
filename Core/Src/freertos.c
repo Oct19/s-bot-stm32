@@ -198,8 +198,8 @@ void LEDblink(void *argument)
   /* Infinite loop */
   for (;;)
   {
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    osDelay(1000);
+    //HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    osDelay(100);
   }
   /* USER CODE END LEDblink */
 }

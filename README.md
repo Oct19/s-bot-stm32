@@ -13,18 +13,19 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 ## Bug
 
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
-* Sometimes OLED screen stuck, need to off power and restart
+* Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue
 
 ## TODO
 
 * [ ] Stepper control
-* [ ] Limit switch
-* [ ] Command execution
+* [X] Limit switch
+* [X] Command execution
 * [ ] Robot state
 * [ ] Update README
 * [ ] Update connection diagram
-* [ ] Capture return error from ssdWriteString
+* [X] Capture return error from ssdWriteString
 * [ ] Use FreeRTOS queue, Semaphore, Event, etc
+* [ ] Implement tasksuspend and tashresumefromISR
 
 ## Fixed Issue
 
@@ -33,6 +34,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * sprintf print use big flash size. Switch to customized printf, see printf.c and printf.h
 * [Linux RS485 to USB device cannot connect]([https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip))
 * FreeRTOS Timer cannot be started during interrupt. Use `xTimerStartFromISR` instead. Also check IRQ priority level
+* Some serial port monitor software is inconsistent at higher baudrate. Enable USB_ECHO to check communication
 
 ## References
 
@@ -46,3 +48,4 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [Stepper S-Curve]([https://github.com/MGDG/SLineControl](https://github.com/MGDG/SLineControl))
 * [UART with DMA and FreeRTOS](https://www.devcoons.com/stm32-uart-receive-unknown-size-data-using-dma-and-freertos/)
 * [[野火]FreeRTOS 内核实现与应用开发实战—基于RT1052](https://doc.embedfire.com/rtos/freertos/i.mx_rt1052/zh/latest/application/message_queue.html)
+* [Split string](https://youtu.be/Vp6OELK4gmo)

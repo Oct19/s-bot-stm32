@@ -78,16 +78,6 @@ inline uint16_t htons(const uint16_t v)
 
 #define ARRAY_LEN(x) (sizeof(x) / sizeof((*x)))
 
-/* A Struct for hold 2D-array with count items */
-typedef struct _ListWithLength
-{
-  char **list;
-  size_t length;
-} ListWithLength;
-
-ListWithLength* getWords(char *text);
-void printListWithLength(ListWithLength *list_with_length);
-
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds
@@ -99,5 +89,8 @@ float hypot_f(float x, float y);
 float convert_delta_vector_to_unit_vector(float *vector);
 float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
 uint16_t ModRTU_CRC(uint8_t *buf, int len);
+uint32_t hash(uint8_t *str);
+void upperString(uint8_t *s);
+char **split(char *string, char *seperators, int *count);
 
-#endif
+#endif /* nuts_bolts_h */

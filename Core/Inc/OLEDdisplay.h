@@ -52,7 +52,8 @@ extern "C"
     void OLED_Update_Warning(uint8_t *msg, size_t size);
     void OLED_Update_Rx(uint8_t *Rx, size_t size);
     void OLED_Update_Tx(uint8_t *Tx, size_t size);
-
+    void OLED_Update_Info(uint8_t *Info, size_t size);
+    
 #ifdef __cplusplus
 }
 #endif

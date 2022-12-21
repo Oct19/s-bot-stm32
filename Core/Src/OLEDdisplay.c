@@ -14,10 +14,6 @@
 
 OLED_HandleTypeDef OLED;
 
-extern osTimerId_t OLED_Warning_TimeoutHandle;
-extern osTimerId_t OLED_Tx_TimeoutHandle;
-extern osTimerId_t OLED_Rx_TimeoutHandle;
-
 /* Message to display contains special character */
 char OLED_ERROR_MSG[8] = "????????";
 
@@ -65,7 +61,7 @@ void OLED_display_welcome(void)
 void OLED_display_Warning(void)
 {
     ssd1306_Fill(White);
-    ssd1306_SetCursor(20, 10);
+    ssd1306_SetCursor(0, 8);
     ssd1306_WriteString((char *)OLED.Warning, Font_11x18, Black);
     ssd1306_UpdateScreen();
 }
@@ -159,6 +155,12 @@ void OLED_Update_Tx(uint8_t *Tx, size_t size)
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
     memcpy(OLED.Tx, Tx, min(OLED_TX_SIZE, size));
     xTimerChangePeriodFromISR(OLED_Tx_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
+}
+
+void OLED_Update_Info(uint8_t *Info, size_t size)
+{
+    memset(OLED.Info, '\0', OLED_TX_SIZE);
+    memcpy(OLED.Info, Info, min(OLED_TX_SIZE, size));
 }
 
 /* OLED_Tx_Timeout_Callback function */

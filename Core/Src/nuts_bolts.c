@@ -195,77 +195,144 @@ uint16_t ModRTU_CRC(uint8_t *buf, int len)
   return crc;
 }
 
-/* Parse a text and return pointer to a ListWithLength words and count it */
-ListWithLength *getWords(char *text)
+uint32_t hash(uint8_t *str)
 {
-  // a variable for count words
-  int count = 0;
+  uint32_t hash = 5381;
+  uint8_t c;
 
-  // keep length of the text
-  size_t text_len = strlen(text);
+  while ((c = *str++))
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-  // a flag indicating the a beginning of a word
-  bool new_word = false;
-
-  // an index of a start found a word
-  int index_start_word = 0;
-
-  // 2D-array for found word
-  // it will be same memory size as the original text
-  char **words = malloc(text_len * sizeof(char));
-
-  for (int i = 0; i <= text_len; ++i)
-  {
-
-    // if found ascii letter or digits and new no traced early
-    // keep index of beginning a new word
-    // and change the flag
-    if (isalnum(text[i]) != 0)
-    {
-      if (new_word == false)
-      {
-        new_word = true;
-        index_start_word = i;
-      }
-
-      // if it is not ascii letter or digits and a word traced early
-      // it means the word ended
-    }
-    else
-    {
-      if (new_word == true)
-      {
-
-        // allocate a memory for a new word in the array of words
-        words[count] = malloc(i - index_start_word * sizeof(char) + 1);
-
-        // copy the found word from the text by indexes
-        strncpy(words[count], text + index_start_word, i - index_start_word);
-
-        // change the flag
-        new_word = false;
-
-        // increase the counter of words
-        count++;
-      }
-    };
-  }
-
-  // bind the found words and it count to a structure and return it
-  ListWithLength *list_with_length = malloc(sizeof(ListWithLength));
-
-  list_with_length->length = count;
-  list_with_length->list = words;
-
-  return list_with_length;
+  return hash;
 }
 
-/* Print information of a ListWithLength */
-void printListWithLength(ListWithLength *list_with_length)
+void upperString(uint8_t *s)
 {
-  printf("Total items: %li\n", list_with_length->length);
-  for (int i = 0; i < list_with_length->length; ++i)
+  for (int i = 0; s[i] != '\0'; i++)
   {
-    printf("%d. %s\n", i + 1, list_with_length->list[i]);
+    if (s[i] >= 'a' && s[i] <= 'z')
+    {
+      s[i] = s[i] - 32;
+    }
   }
+}
+
+/**
+ * @brief Separates the string into substrings. Remember to free memory for each string, and
+ *        the array of pointers to strings
+ * 
+ * @param string 
+ * @param seperators for example ",. _"
+ * @param count return the count of strings via pass-by-pointer using the parameter count
+ * @return char** An array of pointers to strings, dynamically allocated on the heap
+ */
+char **split(char *string, char *seperators, int *count)
+{
+  // get the length of the string
+  int len = strlen(string);
+  
+  // use count to keep a count of the number of substrings
+  *count = 0;
+  
+  // We make one pass of the string to first determine how many substrings 
+  // we'll need to create, so we can allocate space for a large enough array 
+  // of pointer to strings.  The variable i will keep track of our current 
+  // index in the string
+  int i = 0;
+  while (i < len)
+  {
+    // skip over the next group of separator characters
+    while (i < len)
+    {
+      // keep incrementing i until the character at index i is NOT found in the 
+      // separators array, indicating we've reached the next substring to create 
+      if (strchr(seperators, string[i]) == NULL)
+        break;
+      i++;
+    }
+    
+    // skip over the next group of substring (i.e. non-separator characters), 
+    // we'll use old_i to verify that we actually did detect non-separator 
+    // characters (perhaps we're at the end of the string)
+    int old_i = i;
+    while (i < len)
+    {
+      // increment i until the character at index i IS found in the separators 
+      // array, indicating we've reached the next group of separator 
+      // character(s)
+      if (strchr(seperators, string[i]) != NULL)
+        break;
+      i++;
+    }
+
+    // if we did encounter non-seperator characters, increase the count of 
+    // substrings that will need to be created  
+    if (i > old_i) *count = *count + 1;
+  }
+  
+  // allocate space for a dynamically allocated array of *count* number of 
+  // pointers to strings
+  char **strings = malloc(sizeof(char *) * *count);
+  
+  // we'll make another pass of the string using more or less the same logic as 
+  // above, but this time we'll dynamically allocate space for each substring 
+  // and store the substring into this space
+  i = 0;
+
+  // buffer will temporarily store each substring, string_index will keep track 
+  // of the current index we are storing the next substring into using the 
+  // dynamically allocated array above
+  char buffer[16384];
+  int string_index = 0;
+  while (i < len)
+  {
+    // skip through the next group of separators, exactly the same as above
+    while (i < len)
+    {
+      if (strchr(seperators, string[i]) == NULL)
+        break;
+      i++;
+    }
+    
+    // store the next substring into the buffer char array, use j to keep 
+    // track of the index in the buffer array to store the next char
+    int j = 0;
+    while (i < len)
+    {
+      if (strchr(seperators, string[i]) != NULL)
+        break;
+      
+      buffer[j] = string[i];
+      i++;
+      j++;
+    }
+    
+    // only copy the substring into the array of substrings if we actually 
+    // read in characters with the above loop... it's possible we won't if 
+    // the string ends with a group of separator characters!
+    if (j > 0)
+    {
+      // add a null terminator on to the end of buffer to terminate the string
+      buffer[j] = '\0';
+
+      // calculate how much space to allocate... we need to be able to store 
+      // the length of buffer (including a null terminator) number of characters 
+      int to_allocate = sizeof(char) *
+                        (strlen(buffer) + 1);
+      
+      // allocate enough space using malloc, store the pointer into the strings 
+      // array of pointers at hte current string_index
+      strings[string_index] = malloc(to_allocate);
+      
+      // copy the buffer into this dynamically allocated space 
+      strcpy(strings[string_index], buffer);
+      
+      // advance string_index so we store the next string at the next index in 
+      // the strings array
+      string_index++;
+    }
+  }
+
+  // return our array of strings  
+  return strings;
 }

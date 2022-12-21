@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "limits": "c",
+        "gpio.h": "c",
+        "task.h": "c"
+    }
+}

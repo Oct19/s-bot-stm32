@@ -13,15 +13,11 @@ extern "C"
 #define USB_TX_SIZE 20
 #define USB_RX_SIZE 20
 
-
-
-#define USB_ECHO 0
-
 extern uint8_t USB_Tx[USB_TX_SIZE];
 extern uint8_t USB_Rx[USB_RX_SIZE];
+extern uint8_t USB_ECHO; //0 to disable, 1 to enable
 
 void USBserial_Hello(uint32_t delay_ms);
-void USBserial_Execute_Command(void);
 
 #ifdef __cplusplus
 }

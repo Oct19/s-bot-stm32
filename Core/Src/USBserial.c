@@ -3,10 +3,7 @@
 uint8_t USB_Tx[USB_TX_SIZE];
 uint8_t USB_Rx[USB_RX_SIZE];
 
-uint16_t oldPos = 0;
-uint16_t newPos = 0;
-
-int isOK = 0;
+uint8_t USB_ECHO = 0;
 
 extern osThreadId_t USBserialTaskHandle;
 extern osTimerId_t USB_HelloHandle;
@@ -20,8 +17,6 @@ void USBserial(void *argument)
     __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
     for (;;)
     {
-        // USBserial_Hello(50);
-
         osDelay(1);
     }
 }
@@ -42,7 +37,7 @@ void USB_Hello_Callback(void *argument)
 {
     /* USER CODE BEGIN USB_Hello_Callback */
     static int count = 0;
-    sprintf((char *)USB_Tx, "Hello %lu\r\n", count++);
+    snprintf((char *)USB_Tx, USB_TX_SIZE, "Hello %lu", count++);
     HAL_UART_Transmit(&huart2, USB_Tx, USB_TX_SIZE, 10);
     OLED_Update_Tx(USB_Tx, ARRAY_LEN(USB_Tx));
     /* USER CODE END USB_Hello_Callback */
@@ -68,8 +63,27 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         OLED_Update_Rx(USB_Rx, Size);
 
         /* Read and Execute */
-        USBserial_Execute_Command();
+        /* Tx Respond */
+        char *msg = "\nOK\n";
+        switch (Execute_Command(USB_Rx))
+        {
+        case CMD_ErrorCode_InvalidCMD:;
+            msg = "\nInvalidCMD\n";
+            break;
 
+        case CMD_ErrorCode_NotEnoughParam:;
+            msg = "\nNotEnoughParam\n";
+            break;
+        case CMD_ErrorCode_InvalidParam:;
+            msg = "\nInvalidParam\n";
+            break;
+        default:; // CMD_ErrorCode_NoErr
+        }
+        HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), 10);
+
+        /* OLED display warning */
+        if (strcmp(msg, "\nOK\n"))
+            OLED_Update_Warning((uint8_t *)msg, strlen(msg));
         /* Clear Rx buffer */
         memset(USB_Rx, '\0', Size);
 
@@ -77,19 +91,4 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx, USB_RX_SIZE);
         __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
     }
-}
-
-/**
- * @brief Slice, read and execute
- * @todo Use a new slicing function that slice by ' ' instead
- * 
- */
-void USBserial_Execute_Command(void)
-{
-    /* Step 1: Slice Rx into 2D arrays */
-    ListWithLength *instruction = getWords((char *)USB_Rx);
-
-    /* Use OLED.Info to show number of words */
-    memset(OLED.Info, '\0', OLED_INFO_SIZE);
-    itoa(instruction->length, (char *)OLED.Info, 10);
 }

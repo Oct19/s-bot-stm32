@@ -37,6 +37,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -66,6 +67,16 @@ void Error_Handler(void);
 #define USART2_RX_GPIO_Port GPIOA
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define ENA_Pin GPIO_PIN_12
+#define ENA_GPIO_Port GPIOB
+#define DIR1_Pin GPIO_PIN_13
+#define DIR1_GPIO_Port GPIOB
+#define PUL1_Pin GPIO_PIN_14
+#define PUL1_GPIO_Port GPIOB
+#define DIR2_Pin GPIO_PIN_15
+#define DIR2_GPIO_Port GPIOB
+#define PUL2_Pin GPIO_PIN_6
+#define PUL2_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

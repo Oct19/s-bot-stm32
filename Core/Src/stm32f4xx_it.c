@@ -190,11 +190,11 @@ if (__HAL_GPIO_EXTI_GET_FLAG(LIMIT_A_Pin))
     uint8_t msg[8] = "A_RESET";
     OLED_Update_Warning(msg, sizeof(msg));
   }
-  if (__HAL_GPIO_EXTI_GET_FLAG(LIMIT_B_Pin))
-  {
-    uint8_t msg[8] = "B_RESET";
-    OLED_Update_Warning(msg, sizeof(msg));
-  }
+  // if (__HAL_GPIO_EXTI_GET_FLAG(LIMIT_B_Pin))
+  // {
+  //   uint8_t msg[8] = "B_RESET";
+  //   OLED_Update_Warning(msg, sizeof(msg));
+  // }
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(LIMIT_B_Pin);
   HAL_GPIO_EXTI_IRQHandler(LIMIT_A_Pin);
