@@ -2,6 +2,15 @@
     "files.associations": {
         "limits": "c",
         "gpio.h": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "oleddisplay.h": "c",
+        "stepper.h": "c",
+        "stm32f4xx_hal.h": "c",
+        "force_sensor.h": "c",
+        "usbserial.h": "c",
+        "communication.h": "c",
+        "ssd1306.h": "c",
+        "freertos.h": "c",
+        "command.h": "c"
     }
 }

@@ -28,13 +28,6 @@
 
 #define SOME_LARGE_VALUE FLT_MAX
 
-// Axis array index values. Must start with 0 and be continuous.
-#define N_AXIS 3 // Number of axes
-#define X_AXIS 0 // Axis indexing value.
-#define Y_AXIS 1
-#define Z_AXIS 2
-// #define A_AXIS 3
-
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
 #ifdef COREXY
@@ -92,5 +85,15 @@ uint16_t ModRTU_CRC(uint8_t *buf, int len);
 uint32_t hash(uint8_t *str);
 void upperString(uint8_t *s);
 char **split(char *string, char *seperators, int *count);
+
+typedef enum _STRING_NUM_TYPE_HandleTypedef
+{
+  IsNotNumber,
+  IsInteger,
+  IsFloat
+} STRING_NUM_TYPE_HandleTypedef;
+extern STRING_NUM_TYPE_HandleTypedef STRING_NUM_TYPE;
+
+STRING_NUM_TYPE_HandleTypedef string_number_type(char *string);
 
 #endif /* nuts_bolts_h */

@@ -26,15 +26,12 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#define OLED_SHORT_MESSAGE_SIZE 10
-#define OLED_LONG_MESSAGE_SIZE 20
-#define OLED_WARNING_SIZE OLED_SHORT_MESSAGE_SIZE
-#define OLED_TX_SIZE OLED_LONG_MESSAGE_SIZE
-#define OLED_RX_SIZE OLED_LONG_MESSAGE_SIZE
-#define OLED_INFO_SIZE OLED_LONG_MESSAGE_SIZE
 
-#define OLED_MESSAGE_LINGER_MS 1000 // if no new message to display in current priority level
-#define OLED_FPS 10                 // 1 ~ 10
+#define OLED_WARNING_SIZE OLED_SHORT_MESSAGE_LENGTH
+#define OLED_TX_SIZE OLED_LONG_MESSAGE_LENGTH
+#define OLED_RX_SIZE OLED_LONG_MESSAGE_LENGTH
+#define OLED_INFO_SIZE OLED_LONG_MESSAGE_LENGTH
+
 
     typedef struct _OLED_HandleTypeDef
     {
@@ -49,11 +46,11 @@ extern "C"
     void OLED_Init(void);
     void OLED_display_welcome(void);
     void OLED_display_off(void);
-    void OLED_Update_Warning(uint8_t *msg, size_t size);
-    void OLED_Update_Rx(uint8_t *Rx, size_t size);
-    void OLED_Update_Tx(uint8_t *Tx, size_t size);
-    void OLED_Update_Info(uint8_t *Info, size_t size);
-    
+    void OLED_Update_Warning(char *msg);
+    void OLED_Update_Rx(char *msg);
+    void OLED_Update_Tx(char * msg);
+    void OLED_Update_Info(char *msg);
+
 #ifdef __cplusplus
 }
 #endif

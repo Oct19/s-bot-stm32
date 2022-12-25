@@ -14,18 +14,21 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
 * Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue
+* OLED task delays timer callback
 
 ## TODO
 
 * [ ] Stepper control
+* [X] Migrate command execution from UART callback to dedicated Command task
 * [X] Limit switch
 * [X] Command execution
-* [ ] Robot state
-* [ ] Update README
-* [ ] Update connection diagram
+* [X] Robot state
+* [X] Update connection diagram
 * [X] Capture return error from ssdWriteString
 * [ ] Use FreeRTOS queue, Semaphore, Event, etc
 * [ ] Implement tasksuspend and tashresumefromISR
+* [ ] EEPROM
+* [ ] Force sensor through RS485, Idel event callback not working
 
 ## Fixed Issue
 
@@ -40,6 +43,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 
 * [STM32 project template](https://github.com/Oct19/Bluepill-CubeMX-PlatformIO-Template)
 * [STM32 Driver for OLED Display SSD1306]([https://github.com/afiskon/stm32-ssd1306](https://github.com/afiskon/stm32-ssd1306))
+* [Userful algorithms](https://the-algorithms.com/language/c)
 * [STM32 timer interrupt]([https://controllerstech.com/pwm-in-stm32/](https://controllerstech.com/pwm-in-stm32/))
 * [Coordinated stepper motor control (arduino)]([https://youtu.be/fHAO7SW-SZI](https://youtu.be/fHAO7SW-SZI))
 * [STM32 timer]([https://youtu.be/VfbW6nfG4kw](https://youtu.be/VfbW6nfG4kw))

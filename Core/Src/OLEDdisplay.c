@@ -9,7 +9,8 @@
  *
  */
 /* Includes ---------------------------------------------------------------- */
-#include "config.h"
+#include "robot.h"
+#include "timers.h"
 #include "ssd1306.h"
 
 OLED_HandleTypeDef OLED;
@@ -41,6 +42,9 @@ void OLEDdisplay(void *argument)
 void OLED_Init(void)
 {
     ssd1306_Init();
+#ifdef OLED_MIRROR
+    ssd1306_FlipScreenVertically();
+#endif
     memset(OLED.Warning, '\0', OLED_WARNING_SIZE);
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
     memset(OLED.Rx, '\0', OLED_RX_SIZE);
@@ -52,88 +56,81 @@ void OLED_Init(void)
  */
 void OLED_display_welcome(void)
 {
-    ssd1306_Fill(White);
+    ssd1306_SetColor(Black);
+    ssd1306_Fill();
+    ssd1306_SetColor(White);
     ssd1306_SetCursor(20, 5);
-    ssd1306_WriteString("Welcome!", Font_11x18, Black);
+    ssd1306_WriteString("Welcome!", Font_11x18);
     ssd1306_UpdateScreen();
 }
 
 void OLED_display_Warning(void)
 {
-    ssd1306_Fill(White);
-    ssd1306_SetCursor(0, 8);
-    ssd1306_WriteString((char *)OLED.Warning, Font_11x18, Black);
+    ssd1306_SetColor(Black);
+    ssd1306_Fill();
+    ssd1306_SetColor(White);
+    ssd1306_SetCursor(0, 5);
+    ssd1306_WriteString((char *)OLED.Warning, Font_16x26);
     ssd1306_UpdateScreen();
 }
 
 void OLED_display_TxRx(void)
 {
-    ssd1306_Fill(Black);
+    ssd1306_SetColor(Black);
+    ssd1306_Fill();
+    ssd1306_SetColor(White);
     // First row: Tx
     ssd1306_SetCursor(0, 0);
-    if (ssd1306_WriteString((char *)OLED.Tx, Font_7x10, White))
+    if (ssd1306_WriteString((char *)OLED.Tx, Font_7x10))
     {
         /* Contains special character that cannot display */
-        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10);
     }
     // Second row: Rx
     ssd1306_SetCursor(0, 20);
-    if(ssd1306_WriteString((char *)OLED.Rx, Font_7x10, White))
+    if (ssd1306_WriteString((char *)OLED.Rx, Font_7x10))
     {
         /* Contains special character that cannot display */
-        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10);
     }
     ssd1306_UpdateScreen();
 }
 
 void OLED_display_Info(void)
 {
-    ssd1306_Fill(Black);
+    ssd1306_SetColor(Black);
+    ssd1306_Fill();
+    ssd1306_SetColor(White);
     // First row: State
-    ssd1306_SetCursor(30, 0);
+    ssd1306_SetCursor(20, 0);
 
-    char *str = NULL;
-    switch (ROBOT_STATE)
-    {
-    case STATE_RESET:;
-        str = "RESET";
-        break;
-    case STATE_IDLE:;
-        str = "Idle";
-        break;
-    case STATE_MOVE:;
-        str = "Move";
-        break;
-    case STATE_ERROR:;
-        str = "Error";
-        break;
-    }
-    ssd1306_WriteString(str, Font_7x10, White);
+    char str[OLED_INFO_SIZE] = "";
+    snprintf(str, sizeof(str), "Status: %d", robot_status);
+
+    ssd1306_WriteString(str, Font_7x10);
     // Second row: Positions
     ssd1306_SetCursor(0, 20);
-    if (ssd1306_WriteString((char *)OLED.Info, Font_7x10, White))
+    if (ssd1306_WriteString((char *)OLED.Info, Font_7x10))
     {
         /* Contains special character that cannot display */
-        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10, White);
+        ssd1306_WriteString(OLED_ERROR_MSG, Font_7x10);
     }
     ssd1306_UpdateScreen();
 }
-/**
- * @brief for testing purposes
- *
- */
+
 void OLED_display_off(void)
 {
-    ssd1306_SetCursor(20, 5);
-    ssd1306_Fill(Black);
+    ssd1306_SetColor(Black);
+    ssd1306_Fill();
+    ssd1306_SetColor(White);
     ssd1306_UpdateScreen();
 }
 
-void OLED_Update_Warning(uint8_t *msg, size_t size)
+void OLED_Update_Warning(char *msg)
 {
     memset(OLED.Warning, '\0', OLED_WARNING_SIZE);
-    memcpy(OLED.Warning, msg, min(OLED_WARNING_SIZE, size));
-    xTimerChangePeriodFromISR(OLED_Warning_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
+    memcpy(OLED.Warning, msg, min(OLED_WARNING_SIZE, strlen(msg)));
+    xTimerChangePeriodFromISR(OLED_Warning_TimeoutHandle, OLED_MESSAGE_LINGER_MS,pdFALSE);
 }
 
 /**
@@ -142,47 +139,37 @@ void OLED_Update_Warning(uint8_t *msg, size_t size)
  * @param Rx
  * @param size
  */
-void OLED_Update_Rx(uint8_t *Rx, size_t size)
+void OLED_Update_Rx(char *msg)
 {
     memset(OLED.Rx, '\0', OLED_RX_SIZE);
-    memcpy(OLED.Rx, Rx, min(OLED_RX_SIZE, size));
-    /* Timer start during ISR */
+    memcpy(OLED.Rx, msg, min(OLED_RX_SIZE, strlen(msg)));
     xTimerChangePeriodFromISR(OLED_Rx_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
 }
 
-void OLED_Update_Tx(uint8_t *Tx, size_t size)
+void OLED_Update_Tx(char *msg)
 {
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
-    memcpy(OLED.Tx, Tx, min(OLED_TX_SIZE, size));
-    xTimerChangePeriodFromISR(OLED_Tx_TimeoutHandle, OLED_MESSAGE_LINGER_MS, pdFALSE);
+    memcpy(OLED.Tx, msg, min(OLED_TX_SIZE, strlen(msg)));
+    xTimerChangePeriodFromISR(OLED_Tx_TimeoutHandle, OLED_MESSAGE_LINGER_MS,pdFALSE);
 }
 
-void OLED_Update_Info(uint8_t *Info, size_t size)
+void OLED_Update_Info(char *msg)
 {
     memset(OLED.Info, '\0', OLED_TX_SIZE);
-    memcpy(OLED.Info, Info, min(OLED_TX_SIZE, size));
+    memcpy(OLED.Info, msg, min(OLED_INFO_SIZE, strlen(msg)));
 }
 
-/* OLED_Tx_Timeout_Callback function */
 void OLED_Tx_Timeout_Callback(void *argument)
 {
-    /* USER CODE BEGIN OLED_Tx_Timeout_Callback */
     memset(OLED.Tx, '\0', OLED_TX_SIZE);
-    /* USER CODE END OLED_Tx_Timeout_Callback */
 }
 
-/* OLED_Warning_Timeout_Callback function */
 void OLED_Warning_Timeout_Callback(void *argument)
 {
-    /* USER CODE BEGIN OLED_Warning_Timeout_Callback */
     memset(OLED.Warning, '\0', OLED_WARNING_SIZE);
-    /* USER CODE END OLED_Warning_Timeout_Callback */
 }
 
-/* OLED_Rx_Timeout_Callback function */
 void OLED_Rx_Timeout_Callback(void *argument)
 {
-    /* USER CODE BEGIN OLED_Rx_Timeout_Callback */
     memset(OLED.Rx, '\0', OLED_RX_SIZE);
-    /* USER CODE END OLED_Rx_Timeout_Callback */
 }

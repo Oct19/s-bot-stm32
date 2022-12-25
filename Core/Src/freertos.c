@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "config.h"
+#include "robot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +58,7 @@ const osThreadAttr_t LEDblinkTask_attributes = {
 osThreadId_t OLEDdisplayTaskHandle;
 const osThreadAttr_t OLEDdisplayTask_attributes = {
   .name = "OLEDdisplayTask",
-  .stack_size = 300 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for UARTparserTask */
@@ -75,12 +75,12 @@ const osThreadAttr_t StepperTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for USBserialTask */
-osThreadId_t USBserialTaskHandle;
-const osThreadAttr_t USBserialTask_attributes = {
-  .name = "USBserialTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+/* Definitions for RobotStateTask */
+osThreadId_t RobotStateTaskHandle;
+const osThreadAttr_t RobotStateTask_attributes = {
+  .name = "RobotStateTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for OLED_Tx_Timeout */
 osTimerId_t OLED_Tx_TimeoutHandle;
@@ -102,6 +102,16 @@ osTimerId_t USB_HelloHandle;
 const osTimerAttr_t USB_Hello_attributes = {
   .name = "USB_Hello"
 };
+/* Definitions for Buzzer_Timeout */
+osTimerId_t Buzzer_TimeoutHandle;
+const osTimerAttr_t Buzzer_Timeout_attributes = {
+  .name = "Buzzer_Timeout"
+};
+/* Definitions for Force_Sensor_Request_Timeout */
+osTimerId_t Force_Sensor_Request_TimeoutHandle;
+const osTimerAttr_t Force_Sensor_Request_Timeout_attributes = {
+  .name = "Force_Sensor_Request_Timeout"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -112,11 +122,13 @@ void LEDblink(void *argument);
 void OLEDdisplay(void *argument);
 void UARTparser(void *argument);
 void Stepper(void *argument);
-void USBserial(void *argument);
+void StateUpdate(void *argument);
 void OLED_Tx_Timeout_Callback(void *argument);
 void OLED_Warning_Timeout_Callback(void *argument);
 void OLED_Rx_Timeout_Callback(void *argument);
 void USB_Hello_Callback(void *argument);
+void Buzzer_Timeout_Callback(void *argument);
+void Force_Sensor_Request_Timeout_Callback(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -127,7 +139,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-  OLED_Init();
+  
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -151,6 +163,12 @@ void MX_FREERTOS_Init(void) {
   /* creation of USB_Hello */
   USB_HelloHandle = osTimerNew(USB_Hello_Callback, osTimerPeriodic, NULL, &USB_Hello_attributes);
 
+  /* creation of Buzzer_Timeout */
+  Buzzer_TimeoutHandle = osTimerNew(Buzzer_Timeout_Callback, osTimerOnce, NULL, &Buzzer_Timeout_attributes);
+
+  /* creation of Force_Sensor_Request_Timeout */
+  Force_Sensor_Request_TimeoutHandle = osTimerNew(Force_Sensor_Request_Timeout_Callback, osTimerPeriodic, NULL, &Force_Sensor_Request_Timeout_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
@@ -172,8 +190,8 @@ void MX_FREERTOS_Init(void) {
   /* creation of StepperTask */
   StepperTaskHandle = osThreadNew(Stepper, NULL, &StepperTask_attributes);
 
-  /* creation of USBserialTask */
-  USBserialTaskHandle = osThreadNew(USBserial, NULL, &USBserialTask_attributes);
+  /* creation of RobotStateTask */
+  RobotStateTaskHandle = osThreadNew(StateUpdate, NULL, &RobotStateTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -195,10 +213,11 @@ void MX_FREERTOS_Init(void) {
 void LEDblink(void *argument)
 {
   /* USER CODE BEGIN LEDblink */
+  beep(2);
   /* Infinite loop */
   for (;;)
   {
-    //HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
     osDelay(100);
   }
   /* USER CODE END LEDblink */
@@ -258,22 +277,22 @@ __weak void Stepper(void *argument)
   /* USER CODE END Stepper */
 }
 
-/* USER CODE BEGIN Header_USBserial */
+/* USER CODE BEGIN Header_StateUpdate */
 /**
- * @brief Function implementing the USBserialTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_USBserial */
-__weak void USBserial(void *argument)
+* @brief Function implementing the RobotStateTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StateUpdate */
+__weak void StateUpdate(void *argument)
 {
-  /* USER CODE BEGIN USBserial */
+  /* USER CODE BEGIN StateUpdate */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END USBserial */
+  /* USER CODE END StateUpdate */
 }
 
 /* OLED_Tx_Timeout_Callback function */
@@ -306,6 +325,22 @@ __weak void USB_Hello_Callback(void *argument)
   /* USER CODE BEGIN USB_Hello_Callback */
 
   /* USER CODE END USB_Hello_Callback */
+}
+
+/* Buzzer_Timeout_Callback function */
+__weak void Buzzer_Timeout_Callback(void *argument)
+{
+  /* USER CODE BEGIN Buzzer_Timeout_Callback */
+
+  /* USER CODE END Buzzer_Timeout_Callback */
+}
+
+/* Force_Sensor_Request_Timeout_Callback function */
+__weak void Force_Sensor_Request_Timeout_Callback(void *argument)
+{
+  /* USER CODE BEGIN Force_Sensor_Request_Timeout_Callback */
+
+  /* USER CODE END Force_Sensor_Request_Timeout_Callback */
 }
 
 /* Private application code --------------------------------------------------*/
