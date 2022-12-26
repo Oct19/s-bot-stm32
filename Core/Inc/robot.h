@@ -45,12 +45,12 @@ extern "C"
 
 /* User written */
 #include "buzzer.h"
-#include "communication.h"
+#include "USBserial.h"
 #include "command.h"
 #include "stepper.h"
-#include "force_sensor.h"
 #include "motion.h"
 #include "OLEDdisplay.h"
+#include "force_sensor.h"
 #include "state.h"
 
 #ifdef __cplusplus

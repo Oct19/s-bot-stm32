@@ -5,23 +5,8 @@ uint8_t USB_Rx[USB_RX_SIZE];
 
 uint8_t USB_ECHO;
 
-void Serial_Init(void);
-
-void Communication_Init(void)
+void USBserial_Init(void)
 {
-    Serial_Init();
-}
-
-void Serial_Init(void)
-{
-    /* Force sensor periodic serial request */
-    osTimerStart(Force_Sensor_Request_TimeoutHandle, 1000 / FORCE_SENSOR_REQUEST_FREQUENCY);
-
-    /* Force sensor start Rx */
-    HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t *)force_sensor_Rx, FORCE_SENSOR_RX_SIZE);
-    /* Disable half-transferred interrupt */
-    __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
-
     /* USB start Rx */
     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx, USB_RX_SIZE);
     /* Disable half-transferred interrupt */
@@ -55,17 +40,11 @@ void USB_Hello_Callback(void *argument)
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-    if (huart->Instance == USART1)
+    if (huart->Instance == USART1) // Force sensor reading
     {
-        // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-        // uint8_t CH01_ADDRESS = 3;
-        // float CH01_value;
-        // read_float(force_sensor_Rx, &CH01_ADDRESS, &CH01_value);
-        // char msg[OLED_INFO_SIZE];
-        // snprintf(msg, sizeof(msg), "%f", CH01_value);
-        // OLED_Update_Info(msg);
+        Force_Sensor_Rx_Callback();
     }
-    if (huart->Instance == USART2)
+    if (huart->Instance == USART2) // USB
     {
         /* Echo back Rx */
         if (USB_ECHO)
@@ -82,10 +61,4 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         HAL_UARTEx_ReceiveToIdle_DMA(&huart2, USB_Rx, USB_RX_SIZE);
         __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
     }
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART2)
-        memset(USB_Rx, '\0', USB_RX_SIZE);
 }

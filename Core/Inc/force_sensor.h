@@ -59,11 +59,15 @@ extern "C"
 
 #define FORCE_SENSOR_RX_SIZE 42 // for 9 channels
 extern char force_sensor_Rx[FORCE_SENSOR_RX_SIZE];
+extern int32_t force_sensor_readings[NUM_FORCE_SENSORS];
 
 /* Choose force sensor readings data type: float or long */
-#define _forceSensor_VALUE_FLOAT
-// #define _forceSensor_VALUE_LONG
+// #define _forceSensor_VALUE_FLOAT
+#define _forceSensor_VALUE_LONG
 
+void Force_Sensor_Init(void);
+void Force_Sensor_start(void);
+void Force_Sensor_Rx_Callback(void);
 
 #ifdef __cplusplus
 }

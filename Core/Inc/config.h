@@ -26,11 +26,13 @@ extern "C"
 // Force sensor
 #define USE_FORCE_SENSOR // Comment to disable
 #ifdef USE_FORCE_SENSOR
+#define NUM_FORCE_SENSORS 8
 // Force sensor box baudrate default 19200, can be configured as: 19200, 115200
 #define FORCE_SENSOR_BAUD_RATE 115200
 // Force sensor request frequency
 // Force sensor box sampling frequency can be configured as 10, 20, 80, 320Hz
-#define FORCE_SENSOR_REQUEST_FREQUENCY 100
+// However, force sensor box has 10ms response delay, so timeout needs to be larger than that
+#define FORCE_SENSOR_REQUEST_TIMEOUT 50
 #endif // USE_FORCE_SENSOR
 
 // OLED
@@ -43,7 +45,7 @@ extern "C"
 #define OLED_SHORT_MESSAGE_LENGTH 10
 #define OLED_LONG_MESSAGE_LENGTH 20
 #define OLED_MESSAGE_LINGER_MS 1000 // if no new message to display in current priority level
-#define OLED_FPS 10                 // 1 ~ 10
+#define OLED_FPS 24                 // 1 ~ 10
 #endif // USE_OLED
 
 

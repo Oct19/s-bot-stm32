@@ -8,7 +8,7 @@
         "stm32f4xx_hal.h": "c",
         "force_sensor.h": "c",
         "usbserial.h": "c",
-        "communication.h": "c",
+        "USBserial": "c",
         "ssd1306.h": "c",
         "freertos.h": "c",
         "command.h": "c"

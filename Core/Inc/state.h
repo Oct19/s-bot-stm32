@@ -44,6 +44,7 @@ extern "C"
     extern uint8_t robot_status;
 
     void State_Init(void);
+    void status_report(uint8_t status);
 
 #ifdef __cplusplus
 }

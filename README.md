@@ -15,6 +15,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
 * Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue
 * OLED task delays timer callback
+* xTimerStart does not work, need to use xTimerChangePeriodFromISR() even from task
 
 ## TODO
 

@@ -21,6 +21,10 @@ void StateUpdate(void *argument)
 
       memset(command_line, '\0', sizeof(command_line));
     }
+    char msg[20];
+    snprintf(msg, sizeof(msg),"%ld", force_sensor_readings[0]);
+    OLED_Update_Info(msg);
+
     osDelay(STATE_UPDATE_DELAY_MS);
   }
 }
@@ -32,6 +36,8 @@ void State_Init(void)
   memset(USB_Rx, '\0', sizeof(USB_Rx));
   memset(USB_Tx, '\0', sizeof(USB_Tx));
   USB_ECHO = USB_ECHO_DEFAULT;
+
+  
 }
 
 void status_report(uint8_t status)

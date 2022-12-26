@@ -50,68 +50,62 @@
 /* Definitions for LEDblinkTask */
 osThreadId_t LEDblinkTaskHandle;
 const osThreadAttr_t LEDblinkTask_attributes = {
-  .name = "LEDblinkTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "LEDblinkTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for OLEDdisplayTask */
 osThreadId_t OLEDdisplayTaskHandle;
 const osThreadAttr_t OLEDdisplayTask_attributes = {
-  .name = "OLEDdisplayTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "OLEDdisplayTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for UARTparserTask */
 osThreadId_t UARTparserTaskHandle;
 const osThreadAttr_t UARTparserTask_attributes = {
-  .name = "UARTparserTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "UARTparserTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for StepperTask */
 osThreadId_t StepperTaskHandle;
 const osThreadAttr_t StepperTask_attributes = {
-  .name = "StepperTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "StepperTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for RobotStateTask */
 osThreadId_t RobotStateTaskHandle;
 const osThreadAttr_t RobotStateTask_attributes = {
-  .name = "RobotStateTask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityHigh,
+    .name = "RobotStateTask",
+    .stack_size = 256 * 4,
+    .priority = (osPriority_t)osPriorityHigh,
 };
 /* Definitions for OLED_Tx_Timeout */
 osTimerId_t OLED_Tx_TimeoutHandle;
 const osTimerAttr_t OLED_Tx_Timeout_attributes = {
-  .name = "OLED_Tx_Timeout"
-};
+    .name = "OLED_Tx_Timeout"};
 /* Definitions for OLED_Warning_Timeout */
 osTimerId_t OLED_Warning_TimeoutHandle;
 const osTimerAttr_t OLED_Warning_Timeout_attributes = {
-  .name = "OLED_Warning_Timeout"
-};
+    .name = "OLED_Warning_Timeout"};
 /* Definitions for OLED_Rx_Timeout */
 osTimerId_t OLED_Rx_TimeoutHandle;
 const osTimerAttr_t OLED_Rx_Timeout_attributes = {
-  .name = "OLED_Rx_Timeout"
-};
+    .name = "OLED_Rx_Timeout"};
 /* Definitions for USB_Hello */
 osTimerId_t USB_HelloHandle;
 const osTimerAttr_t USB_Hello_attributes = {
-  .name = "USB_Hello"
-};
+    .name = "USB_Hello"};
 /* Definitions for Buzzer_Timeout */
 osTimerId_t Buzzer_TimeoutHandle;
 const osTimerAttr_t Buzzer_Timeout_attributes = {
-  .name = "Buzzer_Timeout"
-};
+    .name = "Buzzer_Timeout"};
 /* Definitions for Force_Sensor_Request_Timeout */
 osTimerId_t Force_Sensor_Request_TimeoutHandle;
 const osTimerAttr_t Force_Sensor_Request_Timeout_attributes = {
-  .name = "Force_Sensor_Request_Timeout"
-};
+    .name = "Force_Sensor_Request_Timeout"};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -133,13 +127,14 @@ void Force_Sensor_Request_Timeout_Callback(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
-  
+
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -198,9 +193,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
+  
   /* USER CODE END RTOS_EVENTS */
-
 }
 
 /* USER CODE BEGIN Header_LEDblink */
@@ -213,12 +207,13 @@ void MX_FREERTOS_Init(void) {
 void LEDblink(void *argument)
 {
   /* USER CODE BEGIN LEDblink */
+  Force_Sensor_start();
   beep(2);
   /* Infinite loop */
   for (;;)
   {
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    osDelay(100);
+    osDelay(1000);
   }
   /* USER CODE END LEDblink */
 }
@@ -279,16 +274,16 @@ __weak void Stepper(void *argument)
 
 /* USER CODE BEGIN Header_StateUpdate */
 /**
-* @brief Function implementing the RobotStateTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the RobotStateTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StateUpdate */
 __weak void StateUpdate(void *argument)
 {
   /* USER CODE BEGIN StateUpdate */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -347,4 +342,3 @@ __weak void Force_Sensor_Request_Timeout_Callback(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
