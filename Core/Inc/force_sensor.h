@@ -41,6 +41,8 @@
  * Rx: 01 03 24 AA AA AA AA BB BB BB BB CC CC CC CC DD DD DD DD
  * EE EE EE EE FF FF FF FF GG GG GG GG HH HH HH HH II II II II A1 33
  * In Rx, AA AA AA AA is the long value for channel 1
+ * ************************************************
+ * In long mode, range from -10000(10kgF pull) to 10000(10kgF push)
  * @version 0.1
  * @date 2022-12-09
  *
@@ -58,16 +60,14 @@ extern "C"
 #include "robot.h"
 
 #define FORCE_SENSOR_RX_SIZE 42 // for 9 channels
-extern char force_sensor_Rx[FORCE_SENSOR_RX_SIZE];
-extern int32_t force_sensor_readings[NUM_FORCE_SENSORS];
 
-/* Choose force sensor readings data type: float or long */
-// #define _forceSensor_VALUE_FLOAT
-#define _forceSensor_VALUE_LONG
+    extern int16_t force_grams[FORCE_SENSOR_NUM];
 
-void Force_Sensor_Init(void);
-void Force_Sensor_start(void);
-void Force_Sensor_Rx_Callback(void);
+    void Force_Sensor_Init(void);
+    void Force_Sensor_Rx_Callback(void);
+    void Force_Sensor_Read_Rx(void);
+
+    void Force_Sensor_Reset(uint8_t channel_number);
 
 #ifdef __cplusplus
 }

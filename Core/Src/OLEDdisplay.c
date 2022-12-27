@@ -40,7 +40,7 @@ void OLEDdisplay(void *argument)
 
 void OLED_Init(void)
 {
-    ssd1306_Init();
+    while(!ssd1306_Init());
 #ifdef OLED_MIRROR
     ssd1306_FlipScreenVertically();
 #endif

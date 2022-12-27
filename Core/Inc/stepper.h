@@ -63,8 +63,8 @@ typedef struct
     volatile unsigned int stepCount; // number of steps completed in current movement
 } stepperInfo;
 
-#define NUM_STEPPERS 2
-extern volatile stepperInfo steppers[NUM_STEPPERS];
+
+extern volatile stepperInfo steppers[STEP_NUM];
 extern volatile uint8_t remainingSteppersFlag;
 extern volatile uint8_t nextStepperFlag;
 

@@ -43,6 +43,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     if (huart->Instance == USART1) // Force sensor reading
     {
         Force_Sensor_Rx_Callback();
+        // UART_RING_BUF_Callback(Size);
     }
     if (huart->Instance == USART2) // USB
     {

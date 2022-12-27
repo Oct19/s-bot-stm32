@@ -13,9 +13,9 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 ## Bug
 
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
-* Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue
-* OLED task delays timer callback
+* Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue. Use while loop when initiating, hope it works
 * xTimerStart does not work, need to use xTimerChangePeriodFromISR() even from task
+* When using Idle_DMA to recieve force sensor reading, after around 10mins, RxEventCallback is not called ever again(using while loop to ensure DMA restarted correctly in every Callback, hope this works)
 
 ## TODO
 
@@ -29,7 +29,6 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [ ] Use FreeRTOS queue, Semaphore, Event, etc
 * [ ] Implement tasksuspend and tashresumefromISR
 * [ ] EEPROM
-* [ ] Force sensor through RS485, Idel event callback not working
 
 ## Fixed Issue
 
@@ -37,8 +36,8 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * Sometimes PlatformIO need to build twice to build successfully, or after Clean All
 * sprintf print use big flash size. Switch to customized printf, see printf.c and printf.h
 * [Linux RS485 to USB device cannot connect]([https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip](https://unix.stackexchange.com/questions/670636/unable-to-use-usb-dongle-based-on-usb-serial-converter-chip))
-* FreeRTOS Timer cannot be started during interrupt. Use `xTimerStartFromISR` instead. Also check IRQ priority level
 * Some serial port monitor software is inconsistent at higher baudrate. Enable USB_ECHO to check communication
+* OLED task delays timer callback, fixed by switching to driver with DMA mode
 
 ## References
 

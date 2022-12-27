@@ -21,8 +21,10 @@ void StateUpdate(void *argument)
 
       memset(command_line, '\0', sizeof(command_line));
     }
+
+    Force_Sensor_Read_Rx();
     char msg[20];
-    snprintf(msg, sizeof(msg),"%ld", force_sensor_readings[0]);
+    snprintf(msg, sizeof(msg),"%d", force_grams[0]);
     OLED_Update_Info(msg);
 
     osDelay(STATE_UPDATE_DELAY_MS);

@@ -50,62 +50,61 @@
 /* Definitions for LEDblinkTask */
 osThreadId_t LEDblinkTaskHandle;
 const osThreadAttr_t LEDblinkTask_attributes = {
-    .name = "LEDblinkTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
+  .name = "LEDblinkTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for OLEDdisplayTask */
 osThreadId_t OLEDdisplayTaskHandle;
 const osThreadAttr_t OLEDdisplayTask_attributes = {
-    .name = "OLEDdisplayTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityLow,
-};
-/* Definitions for UARTparserTask */
-osThreadId_t UARTparserTaskHandle;
-const osThreadAttr_t UARTparserTask_attributes = {
-    .name = "UARTparserTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityLow,
+  .name = "OLEDdisplayTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for StepperTask */
 osThreadId_t StepperTaskHandle;
 const osThreadAttr_t StepperTask_attributes = {
-    .name = "StepperTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityLow,
+  .name = "StepperTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for RobotStateTask */
 osThreadId_t RobotStateTaskHandle;
 const osThreadAttr_t RobotStateTask_attributes = {
-    .name = "RobotStateTask",
-    .stack_size = 256 * 4,
-    .priority = (osPriority_t)osPriorityHigh,
+  .name = "RobotStateTask",
+  .stack_size = 256 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for OLED_Tx_Timeout */
 osTimerId_t OLED_Tx_TimeoutHandle;
 const osTimerAttr_t OLED_Tx_Timeout_attributes = {
-    .name = "OLED_Tx_Timeout"};
+  .name = "OLED_Tx_Timeout"
+};
 /* Definitions for OLED_Warning_Timeout */
 osTimerId_t OLED_Warning_TimeoutHandle;
 const osTimerAttr_t OLED_Warning_Timeout_attributes = {
-    .name = "OLED_Warning_Timeout"};
+  .name = "OLED_Warning_Timeout"
+};
 /* Definitions for OLED_Rx_Timeout */
 osTimerId_t OLED_Rx_TimeoutHandle;
 const osTimerAttr_t OLED_Rx_Timeout_attributes = {
-    .name = "OLED_Rx_Timeout"};
+  .name = "OLED_Rx_Timeout"
+};
 /* Definitions for USB_Hello */
 osTimerId_t USB_HelloHandle;
 const osTimerAttr_t USB_Hello_attributes = {
-    .name = "USB_Hello"};
+  .name = "USB_Hello"
+};
 /* Definitions for Buzzer_Timeout */
 osTimerId_t Buzzer_TimeoutHandle;
 const osTimerAttr_t Buzzer_Timeout_attributes = {
-    .name = "Buzzer_Timeout"};
+  .name = "Buzzer_Timeout"
+};
 /* Definitions for Force_Sensor_Request_Timeout */
 osTimerId_t Force_Sensor_Request_TimeoutHandle;
 const osTimerAttr_t Force_Sensor_Request_Timeout_attributes = {
-    .name = "Force_Sensor_Request_Timeout"};
+  .name = "Force_Sensor_Request_Timeout"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -114,7 +113,6 @@ const osTimerAttr_t Force_Sensor_Request_Timeout_attributes = {
 
 void LEDblink(void *argument);
 void OLEDdisplay(void *argument);
-void UARTparser(void *argument);
 void Stepper(void *argument);
 void StateUpdate(void *argument);
 void OLED_Tx_Timeout_Callback(void *argument);
@@ -127,12 +125,11 @@ void Force_Sensor_Request_Timeout_Callback(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
- * @brief  FreeRTOS initialization
- * @param  None
- * @retval None
- */
-void MX_FREERTOS_Init(void)
-{
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
+void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -179,9 +176,6 @@ void MX_FREERTOS_Init(void)
   /* creation of OLEDdisplayTask */
   OLEDdisplayTaskHandle = osThreadNew(OLEDdisplay, NULL, &OLEDdisplayTask_attributes);
 
-  /* creation of UARTparserTask */
-  UARTparserTaskHandle = osThreadNew(UARTparser, NULL, &UARTparserTask_attributes);
-
   /* creation of StepperTask */
   StepperTaskHandle = osThreadNew(Stepper, NULL, &StepperTask_attributes);
 
@@ -193,8 +187,9 @@ void MX_FREERTOS_Init(void)
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  
+
   /* USER CODE END RTOS_EVENTS */
+
 }
 
 /* USER CODE BEGIN Header_LEDblink */
@@ -207,7 +202,8 @@ void MX_FREERTOS_Init(void)
 void LEDblink(void *argument)
 {
   /* USER CODE BEGIN LEDblink */
-  Force_Sensor_start();
+  Force_Sensor_Init();
+  // Ringbuf_Init();
   beep(2);
   /* Infinite loop */
   for (;;)
@@ -234,24 +230,6 @@ __weak void OLEDdisplay(void *argument)
     osDelay(1);
   }
   /* USER CODE END OLEDdisplay */
-}
-
-/* USER CODE BEGIN Header_UARTparser */
-/**
- * @brief Function implementing the UARTparserTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_UARTparser */
-__weak void UARTparser(void *argument)
-{
-  /* USER CODE BEGIN UARTparser */
-  /* Infinite loop */
-  for (;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END UARTparser */
 }
 
 /* USER CODE BEGIN Header_Stepper */
@@ -342,3 +320,4 @@ __weak void Force_Sensor_Request_Timeout_Callback(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
+

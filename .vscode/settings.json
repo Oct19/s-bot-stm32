@@ -11,6 +11,7 @@
         "USBserial": "c",
         "ssd1306.h": "c",
         "freertos.h": "c",
-        "command.h": "c"
+        "command.h": "c",
+        "robot.h": "c"
     }
 }

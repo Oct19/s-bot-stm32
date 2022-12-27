@@ -5,7 +5,7 @@ void Stepper(void *argument)
   /* Infinite loop */
   for (;;)
   {
-    step_simpleAccel(400);
+    step_constantAccel();
     osDelay(1);
   }
 }
@@ -92,7 +92,7 @@ void step_simpleAccel(int steps)
 void step_constantAccel()
 {
   /* Calculate delay for each step */
-  int steps = 100;
+  int steps = 50;
   int delays[steps];
   int spr = 200;                  // steps per round
   float angle = 2 * pi / spr;     // angle per step (rad)
@@ -202,7 +202,7 @@ void setNextInterruptInterval()
   UNUSED(movementComplete);
 
   unsigned int mind = 999999;
-  for (int i = 0; i < NUM_STEPPERS; i++)
+  for (int i = 0; i < STEP_NUM; i++)
   {
     if (((1 << i) & remainingSteppersFlag) && steppers[i].di < mind)
     {
@@ -211,7 +211,7 @@ void setNextInterruptInterval()
   }
 
   nextStepperFlag = 0;
-  for (int i = 0; i < NUM_STEPPERS; i++)
+  for (int i = 0; i < STEP_NUM; i++)
   {
     if (!steppers[i].movementDone)
       movementComplete = false;

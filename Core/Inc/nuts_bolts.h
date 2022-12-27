@@ -38,7 +38,7 @@
 // Conversions
 #define MM_PER_INCH (25.40f)
 #define INCH_PER_MM (0.0393701f)
-#define TICKS_PER_MICROSECOND (F_CPU / 1000000)
+#define TICKS_PER_MICROSECOND (SystemCoreClock/1000000)
 
 // math constant
 #define pi 3.1415926
