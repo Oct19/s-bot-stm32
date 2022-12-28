@@ -42,7 +42,8 @@
  * EE EE EE EE FF FF FF FF GG GG GG GG HH HH HH HH II II II II A1 33
  * In Rx, AA AA AA AA is the long value for channel 1
  * ************************************************
- * In long mode, range from -10000(10kgF pull) to 10000(10kgF push)
+ * Temperature affects reading; temperature UP, readings DOWN
+ * 
  * @version 0.1
  * @date 2022-12-09
  *
@@ -59,9 +60,9 @@ extern "C"
 
 #include "robot.h"
 
-#define FORCE_SENSOR_RX_SIZE 42 // for 9 channels
+#define FORCE_SENSOR_RX_SIZE 41 // for 9 channels
 
-    extern int16_t force_grams[FORCE_SENSOR_NUM];
+    extern int16_t force_readings[FORCE_SENSOR_NUM];
 
     void Force_Sensor_Init(void);
     void Force_Sensor_Rx_Callback(void);

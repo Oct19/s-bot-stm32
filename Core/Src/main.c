@@ -99,7 +99,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   USBserial_Init();
   OLED_Init();
- 
   State_Init();
   /* USER CODE END 2 */
 

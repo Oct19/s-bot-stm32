@@ -7,8 +7,11 @@ extern "C"
 #endif
 
 /* Debug */
-// #define CMD_RETURN_HASH
-// #define CMD_DEBUG // Comment to disable
+
+/* Select only one to show */
+// #define  OLED_SHOW_HASH
+#define OLED_SHOW_FORCE_READING
+// #define  OLED_SHOW_STATE
 
 // Command
 #define COMMAND_DELIMITER " ," // space or comma
@@ -34,8 +37,8 @@ extern "C"
 // Force sensor request frequency
 // Force sensor box sampling frequency can be configured as 10, 20, 80, 320Hz
 // However, force sensor box has 10ms response delay, so timeout needs to be larger than that
-#define FORCE_SENSOR_REQUEST_TIMEOUT 50
-#endif // USE_FORCE_SENSOR
+#define FORCE_SENSOR_REQUEST_TIMEOUT 20 // at least 20 ms
+#endif                                  // USE_FORCE_SENSOR
 
 // OLED
 #define USE_OLED

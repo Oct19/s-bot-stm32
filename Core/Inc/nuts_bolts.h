@@ -82,7 +82,7 @@ float hypot_f(float x, float y);
 float convert_delta_vector_to_unit_vector(float *vector);
 float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
 uint16_t ModRTU_CRC(uint8_t *buf, int len);
-uint32_t hash(uint8_t *str);
+uint32_t hash(char *str);
 void upperString(uint8_t *s);
 char **split(char *string, char *seperators, int *count);
 

@@ -195,7 +195,7 @@ uint16_t ModRTU_CRC(uint8_t *buf, int len)
   return crc;
 }
 
-uint32_t hash(uint8_t *str)
+uint32_t hash(char *str)
 {
   uint32_t hash = 5381;
   uint8_t c;
