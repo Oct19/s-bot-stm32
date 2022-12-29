@@ -13,8 +13,9 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 ## Bug
 
 * After system freeze, normal upload will not reset the board correctly, need to press the RESET button
-* Sometimes OLED screen stuck, need to power off the screen and restart, seems to be OLED hardware issue. Use while loop when initiating, hope it works
+* Sometimes OLED screen fail to initiate, seems to be hardware issue. Hard stop added to help detect this issue early on
 * xTimerStart does not work, need to use xTimerChangePeriodFromISR() even from task
+* Force sensor box stuck in 485 auto upload readings mode. Reset the box wont help; box is not responding to any commands
 
 ## TODO
 

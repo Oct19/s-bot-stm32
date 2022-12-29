@@ -48,33 +48,33 @@ void status_report(uint8_t status)
   switch (status)
   {
   case STATUS_OK:; // STATUS_OK
-    snprintf(state_report_message, sizeof(state_report_message), "OK\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nOK\n");
     break;
   case CMD_UNSUPPORTED_KEY:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD UNSUPPORTED_KEY\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_UNSUPPORTED_KEY\n");
     break;
   case CMD_VALUE_WORD_MISSING:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_VALUE_WORD_MISSING\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_VALUE_WORD_MISSING\n");
     break;
   case CMD_VALUE_NOT_INTEGER:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_VALUE_NOT_INTEGER\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_VALUE_NOT_INTEGER\n");
     break;
   case CMD_INVALID_TARGET:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_INVALID_TARGET\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_INVALID_TARGET\n");
     break;
   case CMD_NO_AXIS_WORDS:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_NO_AXIS_WORDS\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_NO_AXIS_WORDS\n");
     break;
   case CMD_VALUE_OUT_OF_RANGE:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_VALUE_OUT_OF_RANGE\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_VALUE_OUT_OF_RANGE\n");
     break;
   case CMD_TOO_MANY_PARAMETERS:;
-    snprintf(state_report_message, sizeof(state_report_message), "CMD_TOO_MANY_PARAMETERS\n");
+    snprintf(state_report_message, sizeof(state_report_message), "\nCMD_TOO_MANY_PARAMETERS\n");
     break;
   default:
     return;
   }
-    HAL_UART_Transmit(&huart2, (uint8_t *)state_report_message, strlen(state_report_message),1);
+    HAL_UART_Transmit(&huart2, (uint8_t *)state_report_message, strlen(state_report_message),10);
 #ifdef OLED_DISPLAY_WARNING
   if (status)
   {

@@ -40,13 +40,22 @@ uint8_t Execute_Command(uint8_t *line)
                 uint8_t num = atoi((char *)words[2]);
                 if (num < 0 || num > FORCE_SENSOR_NUM)
                     return CMD_VALUE_OUT_OF_RANGE;
-                
+
+#if FORCE_SENSOR_REQUEST_MODE
                 /* Stop periodic force reading request */
                 xTimerStopFromISR(Force_Sensor_Request_TimeoutHandle, pdFALSE);
+
                 /* wait for sometime to avoid conflict */
                 osDelay(FORCE_SENSOR_REQUEST_TIMEOUT * 2);
-                Force_Sensor_Reset(num);
+                Force_Sensor_Zeroing(num);
+
                 xTimerChangePeriodFromISR(Force_Sensor_Request_TimeoutHandle, FORCE_SENSOR_REQUEST_TIMEOUT, pdFALSE);
+
+#else
+                
+                Force_Sensor_Zeroing(num);
+                
+#endif
                 break;
 
             default:
@@ -124,6 +133,48 @@ uint8_t Execute_Command(uint8_t *line)
             break;
         default:;
             return CMD_TOO_MANY_PARAMETERS;
+        }
+        break;
+    case CMD_STOP:;
+        switch (word_count)
+        {
+        case 2:;
+            uint32_t target = hash(words[1]);
+            switch (target)
+            {
+            case CMD_FS:
+                Force_Sensor_Set_Mode(0);
+                break;
+
+            default:
+                return CMD_INVALID_TARGET;
+                break;
+            }
+            break;
+        default:
+            return CMD_INVALID_TARGET;
+            break;
+        }
+        break;
+    case CMD_START:;
+        switch (word_count)
+        {
+        case 2:;
+            uint32_t target = hash(words[1]);
+            switch (target)
+            {
+            case CMD_FS:
+                Force_Sensor_Set_Mode(1);
+                break;
+
+            default:
+                return CMD_INVALID_TARGET;
+                break;
+            }
+            break;
+        default:
+            return CMD_INVALID_TARGET;
+            break;
         }
         break;
     default:;

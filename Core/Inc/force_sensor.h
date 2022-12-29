@@ -43,7 +43,8 @@
  * In Rx, AA AA AA AA is the long value for channel 1
  * ************************************************
  * Temperature affects reading; temperature UP, readings DOWN
- * 
+ * ************************************************
+ *
  * @version 0.1
  * @date 2022-12-09
  *
@@ -60,15 +61,26 @@ extern "C"
 
 #include "robot.h"
 
-#define FORCE_SENSOR_RX_SIZE 41 // for 9 channels
+#define FORCE_SENSOR_UARTx huart1
+#define FORCE_SENSOR_DMA hdma_usart1_rx
+
+// Force sensor box baudrate default 19200, can be configured as: 19200, 115200
+// At 115200, force sensor box has 10ms response delay
+#define FORCE_SENSOR_BAUD_RATE 115200
+
+#define FORCE_SENSOR_RX_SIZE (FORCE_SENSOR_NUM * 2 + 1) // 1 crc byte
 
     extern int16_t force_readings[FORCE_SENSOR_NUM];
-
     void Force_Sensor_Init(void);
     void Force_Sensor_Rx_Callback(void);
     void Force_Sensor_Read_Rx(void);
+    void Force_Sensor_Zeroing(uint8_t channel_number);
+    void Force_Sensor_Set_Mode(uint8_t mode);
 
-    void Force_Sensor_Reset(uint8_t channel_number);
+// #define FORCE_SENSOR_REQUEST_MODE
+#ifdef FORCE_SENSOR_REQUEST_MODE
+#define FORCE_SENSOR_REQUEST_TIMEOUT 50
+#endif
 
 #ifdef __cplusplus
 }
