@@ -58,10 +58,6 @@ void Force_Sensor_Rx_Callback(void)
 
 void Force_Sensor_Read_Rx()
 {
-    /* Check if Rx already been read and 1-st byte cleared */
-    if (!force_sensor_Rx[FORCE_SENSOR_RX_SIZE - 1])
-        return;
-
     FORCE_RX_CONVERTING = true; // during reading, new Rx ignored and lost
     for (uint8_t i = 0; i < FORCE_SENSOR_NUM; i++)
     {
@@ -76,9 +72,6 @@ void Force_Sensor_Read_Rx()
 #endif
     }
     FORCE_RX_CONVERTING = false;
-
-    /* Set last byte to zero means Rx already read */
-    memset(force_sensor_Rx + FORCE_SENSOR_RX_SIZE - 1, '\0', 1);
 }
 
 /**
