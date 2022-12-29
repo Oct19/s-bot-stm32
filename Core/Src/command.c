@@ -34,6 +34,7 @@ uint8_t Execute_Command(uint8_t *line)
             uint32_t target = hash(words[1]);
             switch (target)
             {
+#ifdef FORCE_SENSOR_REQUEST_MODE
             case CMD_FS:;
                 if (string_number_type(words[2]) != IsInteger)
                     return CMD_VALUE_NOT_INTEGER;
@@ -41,7 +42,6 @@ uint8_t Execute_Command(uint8_t *line)
                 if (num < 0 || num > FORCE_SENSOR_NUM)
                     return CMD_VALUE_OUT_OF_RANGE;
 
-#if FORCE_SENSOR_REQUEST_MODE
                 /* Stop periodic force reading request */
                 xTimerStopFromISR(Force_Sensor_Request_TimeoutHandle, pdFALSE);
 
@@ -50,13 +50,8 @@ uint8_t Execute_Command(uint8_t *line)
                 Force_Sensor_Zeroing(num);
 
                 xTimerChangePeriodFromISR(Force_Sensor_Request_TimeoutHandle, FORCE_SENSOR_REQUEST_TIMEOUT, pdFALSE);
-
-#else
-                
-                Force_Sensor_Zeroing(num);
-                
-#endif
                 break;
+#endif
 
             default:
                 return CMD_INVALID_TARGET;
@@ -142,10 +137,6 @@ uint8_t Execute_Command(uint8_t *line)
             uint32_t target = hash(words[1]);
             switch (target)
             {
-            case CMD_FS:
-                Force_Sensor_Set_Mode(0);
-                break;
-
             default:
                 return CMD_INVALID_TARGET;
                 break;
@@ -163,10 +154,6 @@ uint8_t Execute_Command(uint8_t *line)
             uint32_t target = hash(words[1]);
             switch (target)
             {
-            case CMD_FS:
-                Force_Sensor_Set_Mode(1);
-                break;
-
             default:
                 return CMD_INVALID_TARGET;
                 break;

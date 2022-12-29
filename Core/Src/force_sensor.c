@@ -26,7 +26,7 @@ int16_t force_readings[FORCE_SENSOR_NUM];
 void Force_Sensor_Init(void)
 {
 #ifndef FORCE_SENSOR_REQUEST_MODE
-    // Force_Sensor_Set_Mode(1);
+    // Force_Sensor_Set_Mode(3);
 #endif
 
     /* Clear Rx */
@@ -42,38 +42,6 @@ void Force_Sensor_Init(void)
 #endif
 }
 
-/**
- * @brief Reset sensor readings for specific channel
- *
- * @param channel_number 1~9 channel; 0 for all channels
- */
-void Force_Sensor_Zeroing(uint8_t channel_number)
-{
-    uint8_t buf[13] = {0x01, 0x10, 0x03, 0x20, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    if (channel_number < 0 || channel_number > FORCE_SENSOR_NUM)
-        return;
-    if (!channel_number)
-        buf[10] = 0x0A;
-    else
-        buf[10] = channel_number;
-
-    /* Calculate CRC */
-    uint16_t crc = ModRTU_CRC(buf, sizeof(buf) - 2);
-    buf[11] = (crc & 0x00FF);
-    buf[12] = (crc & 0xFF00) >> 8;
-
-    HAL_UART_Transmit(&FORCE_SENSOR_UARTx, buf, sizeof(buf), 10);
-}
-
-#ifdef FORCE_SENSOR_REQUEST_MODE
-void Force_Sensor_Request_Timeout_Callback(void *argument)
-{
-    HAL_UART_Transmit_DMA(&FORCE_SENSOR_UARTx, Force_Sensor_Request_Tx, sizeof(Force_Sensor_Request_Tx));
-
-    HAL_UARTEx_ReceiveToIdle_DMA(&FORCE_SENSOR_UARTx, (uint8_t *)force_sensor_Rx_Buf, FORCE_SENSOR_RX_SIZE);
-    __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
-}
-#endif
 
 /* Run inside HAL_UARTEx_RxEventCallback */
 void Force_Sensor_Rx_Callback(void)
@@ -91,7 +59,7 @@ void Force_Sensor_Rx_Callback(void)
 void Force_Sensor_Read_Rx()
 {
     /* Check if Rx already been read and 1-st byte cleared */
-    if (!force_sensor_Rx[0])
+    if (!force_sensor_Rx[FORCE_SENSOR_RX_SIZE - 1])
         return;
 
     FORCE_RX_CONVERTING = true; // during reading, new Rx ignored and lost
@@ -102,15 +70,15 @@ void Force_Sensor_Read_Rx()
         memcpy(buf, force_sensor_Rx + 3 + i * 4, 4);
         force_readings[i] = (buf[2] << 8) | buf[3];
 #else
-        int8_t buf[2];
+        uint8_t buf[2];
         memcpy(buf, force_sensor_Rx + i * 2, 2);
         force_readings[i] = (buf[0] << 8) | buf[1];
 #endif
     }
     FORCE_RX_CONVERTING = false;
 
-    /* Set first byte to zero means Rx already read */
-    memset(force_sensor_Rx, '\0', 1);
+    /* Set last byte to zero means Rx already read */
+    memset(force_sensor_Rx + FORCE_SENSOR_RX_SIZE - 1, '\0', 1);
 }
 
 /**
@@ -130,12 +98,14 @@ void Force_Sensor_Set_Mode(uint8_t mode)
     buf[12] = (crc & 0xFF00) >> 8;
 
     HAL_UART_Transmit(&FORCE_SENSOR_UARTx, buf, sizeof(buf), 1);
-
-    /* Send again in case of overlapping force sensor message(length = 1.6ms) on RS485 line */
-    // osDelay(2);
-    // HAL_UART_Transmit(&FORCE_SENSOR_UARTx, buf, sizeof(buf) - 2, 1);
 }
 
+/**
+ * @brief The functions below are disabled because in RS485 auto report mode the box is not responding.
+ * See `doc\FORCE_SENSOR\user note.txt` for more info
+ * 
+ */
+#ifdef FORCE_SENSOR_REQUEST_MODE
 /**
  * @brief To set baudrate as 115200: 0116022080002040000000601236
  *
@@ -171,3 +141,35 @@ void Force_Sensor_Reset(void)
     uint8_t buf[13] = {0x01, 0x10, 0x03, 0x20, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x1E, 0x65, 0x4F};
     HAL_UART_Transmit(&FORCE_SENSOR_UARTx, buf, sizeof(buf), 1);
 }
+
+/**
+ * @brief Reset sensor readings for specific channel
+ *
+ * @param channel_number 1~9 channel; 0 for all channels
+ */
+void Force_Sensor_Zeroing(uint8_t channel_number)
+{
+    uint8_t buf[13] = {0x01, 0x10, 0x03, 0x20, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    if (channel_number < 0 || channel_number > FORCE_SENSOR_NUM)
+        return;
+    if (!channel_number)
+        buf[10] = 0x0A;
+    else
+        buf[10] = channel_number;
+
+    /* Calculate CRC */
+    uint16_t crc = ModRTU_CRC(buf, sizeof(buf) - 2);
+    buf[11] = (crc & 0x00FF);
+    buf[12] = (crc & 0xFF00) >> 8;
+
+    HAL_UART_Transmit(&FORCE_SENSOR_UARTx, buf, sizeof(buf), 10);
+}
+
+void Force_Sensor_Request_Timeout_Callback(void *argument)
+{
+    HAL_UART_Transmit_DMA(&FORCE_SENSOR_UARTx, Force_Sensor_Request_Tx, sizeof(Force_Sensor_Request_Tx));
+
+    HAL_UARTEx_ReceiveToIdle_DMA(&FORCE_SENSOR_UARTx, (uint8_t *)force_sensor_Rx_Buf, FORCE_SENSOR_RX_SIZE);
+    __HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);
+}
+#endif

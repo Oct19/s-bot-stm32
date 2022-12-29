@@ -13,5 +13,8 @@
         "freertos.h": "c",
         "command.h": "c",
         "robot.h": "c"
-    }
+    },
+    "editor.fontSize": 20,
+    "debug.console.fontSize": 20,
+    "terminal.integrated.fontSize": 20
 }

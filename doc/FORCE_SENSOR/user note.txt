@@ -1,0 +1,30 @@
+ * Example1: Read Channel 1 value, Long type
+ * Tx: 01 03 03 00 00 02 C4 4F
+ * Rx: 01 03 04 00 00 03 A7 BB 79
+ * In Tx, 03 00 specify type Long
+ * In Rx,  00 00 03 A7 is Long type of 935 in decimal format
+ * ****************************
+ * Example2: Read Channel 1 value, float type
+ * Tx: 01 03 01 00 00 02 C5 F7 //010301000002C5F7
+ * Rx: 01 03 04 42 BB 00 00 9E 6E
+ * In Tx, 01 00 specify type float
+ * In Rx, 42 BB 00 00  is float type of 93.5 in decimal format
+ * ****************************
+ * Example3: Read all 9 Channel, Long type
+ * Tx: 01 03 03 00 00 12 C5 83 //010303000012C583
+ * Rx: 01 03 24 AA AA AA AA BB BB BB BB CC CC CC CC DD DD DD DD
+ * EE EE EE EE FF FF FF FF GG GG GG GG HH HH HH HH II II II II A1 33
+ * In Rx, AA AA AA AA is the long value for channel 1
+ * ************************************************
+ * Temperature affects reading; temperature UP, readings DOWN
+ * ************************************************
+
+// Force sensor box baudrate default 19200, can be configured as: 19200, 115200
+// At 115200, force sensor box has 10ms response delay
+
+调试经验：
+（初始状态：波特率设置为115200）
+1. 序号69，485模式命令，发送尾数是1的时候盒子有反馈表明收到指令，但是没有进入16位主动反馈模式
+2. 同样的485模式命令，发送尾数是2的时候，盒子进入16位主动模式，而不是说明书上写的32位主动模式
+3. 进入主动模式之后，盒子每间隔10ms发送一次9通道读数。此时盒子不再接受任何指令，094清零标定工具也连接不上盒子。
+4. 硬件重制盒子后，如果不进行参数设置（比如清零）而直接断电重启的话，盒子自动进入16位主动模式（不能接受任何指令）

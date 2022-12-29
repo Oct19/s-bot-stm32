@@ -22,28 +22,8 @@
  * Part number: DY094
  * No. of channels: 9
  * Communication: RS232/RS485 modbus-RTU
- * Sampling rate: 10,20,80,320Hz
+ * Sampling rate: 10,20,80,320Hz, Default is 80
  * ****************************
- * Example1: Read Channel 1 value, Long type
- * Tx: 01 03 03 00 00 02 C4 4F
- * Rx: 01 03 04 00 00 03 A7 BB 79
- * In Tx, 03 00 specify type Long
- * In Rx,  00 00 03 A7 is Long type of 935 in decimal format
- * ****************************
- * Example2: Read Channel 1 value, float type
- * Tx: 01 03 01 00 00 02 C5 F7 //010301000002C5F7
- * Rx: 01 03 04 42 BB 00 00 9E 6E
- * In Tx, 01 00 specify type float
- * In Rx, 42 BB 00 00  is float type of 93.5 in decimal format
- * ****************************
- * Example3: Read all 9 Channel, Long type
- * Tx: 01 03 03 00 00 12 C5 83 //010303000012C583
- * Rx: 01 03 24 AA AA AA AA BB BB BB BB CC CC CC CC DD DD DD DD
- * EE EE EE EE FF FF FF FF GG GG GG GG HH HH HH HH II II II II A1 33
- * In Rx, AA AA AA AA is the long value for channel 1
- * ************************************************
- * Temperature affects reading; temperature UP, readings DOWN
- * ************************************************
  *
  * @version 0.1
  * @date 2022-12-09
@@ -64,9 +44,6 @@ extern "C"
 #define FORCE_SENSOR_UARTx huart1
 #define FORCE_SENSOR_DMA hdma_usart1_rx
 
-// Force sensor box baudrate default 19200, can be configured as: 19200, 115200
-// At 115200, force sensor box has 10ms response delay
-#define FORCE_SENSOR_BAUD_RATE 115200
 
 #define FORCE_SENSOR_RX_SIZE (FORCE_SENSOR_NUM * 2 + 1) // 1 crc byte
 
