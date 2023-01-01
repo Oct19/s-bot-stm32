@@ -20,6 +20,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 ## TODO
 
 * [ ] Stepper control
+* [ ] Motion
 * [X] Migrate command execution from UART callback to dedicated Command task
 * [X] Limit switch
 * [X] Command execution
@@ -27,8 +28,9 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [X] Update connection diagram
 * [X] Capture return error from ssdWriteString
 * [ ] Use FreeRTOS queue, Semaphore, Event, etc
-* [ ] Implement tasksuspend and tashresumefromISR
 * [ ] EEPROM
+* [X] Add logic 2 catpure
+* [ ] https://blog.csdn.net/weixin_47407066/article/details/124657473
 
 ## Fixed Issue
 

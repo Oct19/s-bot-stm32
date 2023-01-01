@@ -22,6 +22,7 @@ void StateUpdate(void *argument)
       memset(command_line, '\0', sizeof(command_line));
     }
 
+    /* Convert raw rx to long values and store in array */
     Force_Sensor_Read_Rx();
 
 #ifdef OLED_SHOW_FORCE_READING
@@ -74,7 +75,7 @@ void status_report(uint8_t status)
   default:
     return;
   }
-    HAL_UART_Transmit(&huart2, (uint8_t *)state_report_message, strlen(state_report_message),10);
+  HAL_UART_Transmit(&huart2, (uint8_t *)state_report_message, strlen(state_report_message), 10);
 #ifdef OLED_DISPLAY_WARNING
   if (status)
   {
