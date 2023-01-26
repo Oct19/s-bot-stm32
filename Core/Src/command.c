@@ -2,8 +2,16 @@
 
 uint8_t command_line[USB_RX_SIZE];
 
+/**
+ * @brief After CMD_ERROR_FLAG has been updated, goto end of
+ * the function to free memories
+ *
+ * @param line
+ * @return uint8_t
+ */
 uint8_t Execute_Command(uint8_t *line)
 {
+    uint8_t CMD_ERROR_FLAG = CMD_OK;
     /* Step 1: String to uppercase*/
     upperString(line);
 
@@ -37,11 +45,16 @@ uint8_t Execute_Command(uint8_t *line)
 #ifdef FORCE_SENSOR_REQUEST_MODE
             case CMD_FS:;
                 if (string_number_type(words[2]) != IsInteger)
-                    return CMD_VALUE_NOT_INTEGER;
+                {
+                    CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                    goto free;
+                }
                 uint8_t num = atoi((char *)words[2]);
                 if (num < 0 || num > FORCE_SENSOR_NUM)
-                    return CMD_VALUE_OUT_OF_RANGE;
-
+                {
+                    CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                    goto free;
+                }
                 /* Stop periodic force reading request */
                 xTimerStopFromISR(Force_Sensor_Request_TimeoutHandle, pdFALSE);
 
@@ -54,119 +67,200 @@ uint8_t Execute_Command(uint8_t *line)
 #endif
 
             default:
-                return CMD_INVALID_TARGET;
-                break;
+                CMD_ERROR_FLAG = CMD_INVALID_TARGET;
+                goto free;
             }
             break;
         default:;
-            return CMD_TOO_MANY_PARAMETERS;
+            CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
+            goto free;
         }
         break;
     case CMD_BEEP:;
         switch (word_count)
         {
         case 1:;
-            return CMD_VALUE_WORD_MISSING;
+            CMD_ERROR_FLAG = CMD_VALUE_WORD_MISSING;
+            goto free;
         case 2:;
             if (string_number_type(words[1]) != IsInteger)
-                return CMD_VALUE_NOT_INTEGER;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                goto free;
+            }
             uint8_t num = atoi((char *)words[1]);
             if (num < 0 || num > 255)
-                return CMD_VALUE_OUT_OF_RANGE;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
             beep(num);
             break;
         default:;
-            return CMD_TOO_MANY_PARAMETERS;
+            CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
+            goto free;
         }
         break;
     case CMD_ECHO:;
         switch (word_count)
         {
         case 1:;
-            return CMD_VALUE_WORD_MISSING;
+            CMD_ERROR_FLAG = CMD_VALUE_WORD_MISSING;
+            goto free;
         case 2:;
             if (string_number_type(words[1]) != IsInteger)
-                return CMD_VALUE_NOT_INTEGER;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                goto free;
+            }
             uint8_t num = atoi((char *)words[1]);
             if (num < 0 || num > 1)
-                return CMD_VALUE_OUT_OF_RANGE;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
             USB_ECHO = num;
             break;
         default:;
-            return CMD_TOO_MANY_PARAMETERS;
+            CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
+            goto free;
         }
         break;
     case CMD_LED:;
         switch (word_count)
         {
         case 1:;
-            return CMD_VALUE_WORD_MISSING;
+            CMD_ERROR_FLAG = CMD_VALUE_WORD_MISSING;
+            goto free;
         case 2:;
             if (string_number_type(words[1]) != IsInteger)
-                return CMD_VALUE_NOT_INTEGER;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                goto free;
+            }
             uint8_t num = atoi((char *)words[1]);
             if (num < 0 || num > 1)
-                return CMD_VALUE_OUT_OF_RANGE;
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
             HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, num);
             break;
         default:;
-            return CMD_TOO_MANY_PARAMETERS;
-        }
-        break;
-    case CMD_ENA:;
-        switch (word_count)
-        {
-        case 1:;
-            return CMD_VALUE_WORD_MISSING;
-        case 2:;
-            if (string_number_type(words[1]) != IsInteger)
-                return CMD_VALUE_NOT_INTEGER;
-            uint8_t num = atoi((char *)words[1]);
-            if (num < 0 || num > 1)
-                return CMD_VALUE_OUT_OF_RANGE;
-            HAL_GPIO_WritePin(ENA_GPIO_Port, ENA_Pin, num);
-            break;
-        default:;
-            return CMD_TOO_MANY_PARAMETERS;
+            CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
+            goto free;
         }
         break;
     case CMD_STOP:;
         switch (word_count)
         {
-        case 2:;
-            uint32_t target = hash(words[1]);
-            switch (target)
+        case 1:;
+            for (int i = 0; i < STEP_NUM; i++)
             {
-            default:
-                return CMD_INVALID_TARGET;
-                break;
+                // stepper_stop(s[i]);
             }
             break;
         default:
-            return CMD_INVALID_TARGET;
-            break;
+            CMD_ERROR_FLAG = CMD_INVALID_TARGET;
+            goto free;
         }
         break;
-    case CMD_START:;
+    case CMD_MOT:;
+        /**
+         * @brief Command for motor position control
+         * e.g. MOT 1 5000 10
+         * Means Motor #1, move to step position 5000,
+         * with speed limit 10 REV/min (optional)
+         * When speed limit is not provided,
+         * default values are used.
+         *
+         */
         switch (word_count)
         {
+        case 1:;
         case 2:;
-            uint32_t target = hash(words[1]);
-            switch (target)
+            CMD_ERROR_FLAG = CMD_VALUE_WORD_MISSING;
+            goto free;
+        case 3:; // posiiton control
+        case 4:; // specifying speed limit
+            // check MOT number
+            if (string_number_type(words[1]) != IsInteger)
             {
-            default:
-                return CMD_INVALID_TARGET;
-                break;
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                goto free;
             }
-            break;
-        default:
-            return CMD_INVALID_TARGET;
-            break;
+            uint8_t index = atoi((char *)words[1]);
+            if (index < 1 || index > STEP_NUM)
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
+
+            // check position
+            if (string_number_type(words[2]) != IsInteger)
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
+                goto free;
+            }
+            uint8_t pos = atoi((char *)words[2]);
+            if (pos < STEP_POS_MIN || pos > STEP_POS_MAX)
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
+            stepper[index].stepPos_target = pos;
+            if (word_count == 3)
+            {
+                // no speed or accel input
+                stepper[index].stepSpeedLimit = STEP_RPM_DEFAULT;
+                stepper[index].stepAcc = STEP_ACC_DEFAULT;
+                // step_run(s[index]);
+                goto free;
+            }
+
+            // check speed
+            if (string_number_type(words[3]) == IsNotNumber)
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_NOT_NUMBER;
+                goto free;
+            }
+
+            float rpm = atof((char *)words[3]);
+            if (abs(rpm) < STEP_RPM_MIN || rpm > STEP_RPM_MAX)
+            {
+                CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+                goto free;
+            }
+            stepper[index].stepSpeedLimit = rpm;
+            goto free;
+
+            // // check accel
+            // if (string_number_type(words[4]) == IsNotNumber)
+            // {
+            //     CMD_ERROR_FLAG = CMD_VALUE_NOT_NUMBER;
+            //     goto free;
+            // }
+            // float accel = atof((char *)words[4]);
+            // if (accel < STEP_ACC_MIN || accel > STEP_ACC_MAX)
+            // {
+            //     CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
+            //     goto free;
+            // }
+            // stepper[index].stepAcc = accel;
+            // // step_run(s[index]);
+            // goto free;
+        default:;
+            CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
+            goto free;
         }
         break;
+
     default:;
-        return CMD_UNSUPPORTED_KEY;
+        CMD_ERROR_FLAG = CMD_UNSUPPORTED_KEY;
+        goto free;
     }
+
+free:
     /* Step 4: Free memory */
     for (int i = 0; i < word_count; i++)
         free(words[i]); // free the dynamically allocated space for each string
@@ -176,5 +270,5 @@ uint8_t Execute_Command(uint8_t *line)
     /* Step 5: Clear buf */
     memset(line, '\0', strlen((char *)line));
 
-    return CMD_OK;
+    return CMD_ERROR_FLAG;
 }

@@ -19,8 +19,6 @@ extern "C"
 
 #include "robot.h"
 
-#define STATE_UPDATE_DELAY_MS 10
-
 // Define robot status codes. Valid values (0-255)
 #define STATUS_OK 0
 #define STATUS_EXPECTED_COMMAND_LETTER 1

@@ -48,7 +48,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     {
         /* Echo back Rx */
         if (USB_ECHO)
-            HAL_UART_Transmit_DMA(&huart2, USB_Rx, Size);
+            HAL_UART_Transmit(&huart2, USB_Rx, Size,1);
 
         /* Copy to command_line to execute */
         memset(command_line, '\0', COMMAND_MAX_LENGTH);

@@ -16,6 +16,8 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * Sometimes OLED screen fail to initiate, seems to be hardware issue. Hard stop added to help detect this issue early on
 * xTimerStart does not work, need to use xTimerChangePeriodFromISR() even from task
 * Force sensor box stuck in 485 auto upload readings mode. Reset the box wont help; box is not responding to any commands
+* If multipule UART_Tansmit_DMA functions were called, the later ones are sometimes not working
+* Stepper_GetSpeedLevel: when spped is negative and levels >3, freeze
 
 ## TODO
 

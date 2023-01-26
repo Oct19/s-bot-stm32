@@ -72,7 +72,7 @@ const osThreadAttr_t StepperTask_attributes = {
 osThreadId_t RobotStateTaskHandle;
 const osThreadAttr_t RobotStateTask_attributes = {
   .name = "RobotStateTask",
-  .stack_size = 256 * 4,
+  .stack_size = 300 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for OLED_Tx_Timeout */

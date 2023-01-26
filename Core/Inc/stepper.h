@@ -34,48 +34,67 @@ extern "C"
 #include "main.h"
 #include "stdbool.h"
 
-#define ENABLE_MOTORS       HAL_GPIO_WritePin(ENA_GPIO_Port, ENA_Pin, SET);
-#define DISABLE_MOTORS      HAL_GPIO_WritePin(ENA_GPIO_Port, ENA_Pin, RESET);
+#define ENABLE_MOTORS HAL_GPIO_WritePin(ENA1_GPIO_Port, ENA1_Pin, SET);
+#define DISABLE_MOTORS HAL_GPIO_WritePin(ENA1_GPIO_Port, ENA1_Pin, RESET);
 
+// ENA pin high/low
+#define STEP_ENABLE 0
+#define STEP_DISABLE 1
+// DIR pin cw/ccw
+#define STEP_CW 0
+#define STEP_CCW 1
+// ARR default
+#define t_prescaler 180
+#define STEP_ARR_DEFAULT (F_CPU / (t_prescaler * STEP_RPM_DEFAULT * STEP_PER_REV / 60))
 
-typedef struct
-{
-    // externally defined parameters
-    float acceleration;
-    volatile unsigned int minStepInterval; // ie. max speed, smaller is faster
-    void (*dirFunc)(int);
-    void (*stepFunc)();
+#define STEP_MAP_SIZE ((int)(3 * STEP_RPM_MAX / STEP_RPM_LEVEL))
 
-    // derived parameters
-    unsigned int c0;   // step interval for first step, determines acceleration
-    long stepPosition; // current position of stepper (total of all movements taken so far)
+    typedef struct _Stepper_HandleTypeDef
+    {
+        // index
+        uint8_t Index;
 
-    // per movement variables (only changed once per movement)
-    volatile int dir;                      // current direction of movement, used to keep track of position
-    volatile unsigned int totalSteps;      // number of steps requested for current movement
-    volatile bool movementDone;            // true if the current movement has been completed (used by main program to wait for completion)
-    volatile unsigned int rampUpStepCount; // number of steps taken to reach either max speed, or half-way to the goal (will be zero until this number is known)
+        // timer
+        TIM_HandleTypeDef timer_handle;
+        uint32_t timer_channel;
 
-    // per iteration variables (potentially changed every interrupt)
-    volatile unsigned int n;         // index in acceleration curve, used to calculate next interval
-    volatile float d;                // current interval length
-    volatile unsigned long di;       // above variable truncated
-    volatile unsigned int stepCount; // number of steps completed in current movement
-} stepperInfo;
+        // connection
+        GPIO_TypeDef *ENA_Port;
+        uint32_t ENA_Pin;
+        GPIO_TypeDef *DIR_Port;
+        uint32_t DIR_Pin;
 
+        // command parameters
+        int16_t stepPos_target;
+        float stepSpeedLimit;
+        float stepAcc;
 
-extern volatile stepperInfo steppers[STEP_NUM];
-extern volatile uint8_t remainingSteppersFlag;
-extern volatile uint8_t nextStepperFlag;
+        // variables update at every step
+        volatile int16_t stepPos; // current position of stepper (total of all movements taken so far)
 
-void step_simplest(void);
-void step_constantSpeed(int steps, uint8_t direction, uint8_t delay);
-void step_simpleAccel(int steps);
-void step_constantAccel();
+        int16_t step_map_index[STEP_MAP_SIZE]; // step index for mapping
 
-void resetStepperInfo(stepperInfo si);
-void resetStepper(volatile stepperInfo si);
-void step_ISR();
+        // mapping for driver control
+        bool stepENA_map[STEP_MAP_SIZE];     // power
+        bool stepDIR_map[STEP_MAP_SIZE];     // direction
+        uint16_t stepARR_map[STEP_MAP_SIZE]; // interval
+
+        // for system checking
+        bool running;
+
+    } Stepper_HandleTypeDef;
+
+    extern Stepper_HandleTypeDef stepper[STEP_NUM];
+
+    void step_simplest(void);
+    void step_constantSpeed(int steps, uint8_t direction, uint8_t delay);
+    void step_simpleAccel(int steps);
+    void step_constantAccel();
+
+    void Stepper_Init(void);
+    void Stepper_Reset(Stepper_HandleTypeDef * s);
+    void Step_ISR();
+    float *Stepper_GetSpeedLevel(float speed_start, float speed_end, uint8_t *count);
 
 #ifdef __cplusplus
 }

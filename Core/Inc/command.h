@@ -29,6 +29,7 @@ extern "C"
 #define CMD_NO_AXIS_WORDS 25
 #define CMD_VALUE_OUT_OF_RANGE 26
 #define CMD_TOO_MANY_PARAMETERS 27
+#define CMD_VALUE_NOT_NUMBER 28
 
 /* Basic */
 #define CMD_RESET 233970152
