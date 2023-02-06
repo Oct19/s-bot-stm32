@@ -13,7 +13,7 @@ extern "C"
 #define OLED_DEBUG
 
 // STATE
-#define STATE_UPDATE_DELAY_MS 1
+#define STATE_UPDATE_DELAY_MS 10
 
 // Command
 #define COMMAND_DELIMITER " ," // space or comma
@@ -46,14 +46,14 @@ extern "C"
 #define STEP_POS_MAX (STEP_PER_REV * 100)
 #define STEP_POS_MIN (-STEP_PER_REV * 100)
 // speed
-#define STEP_RPM_MAX 600
+#define STEP_RPM_MAX 300
 #define STEP_RPM_MIN 1
 #define STEP_RPM_DEFAULT 100 // has to be integer since precompiler cannot compare float
-#define STEP_RPM_LEVEL 10    // integer only. speed level resolution during accel and decel
+#define STEP_RPM_LEVEL 10     // integer only. speed level resolution during accel and decel
 // acceleration
 #define STEP_ACC_MAX 600
 #define STEP_ACC_MIN 1
-#define STEP_ACC_DEFAULT 100 // has to be integer since precompiler cannot compare float
+#define STEP_ACC_DEFAULT 600 // has to be integer since precompiler cannot compare float
 // stepper rest and dwell after motion complete
 #define STEP_REST // disable stepper when motion is finished
 #ifdef STEP_REST

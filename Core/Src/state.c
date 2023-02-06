@@ -17,30 +17,12 @@ void StateUpdate(void *argument)
       OLED_Update_Rx((char *)command_line);
 #endif
       status_report(Execute_Command(command_line));
-      // robot_status_report(robot_status);
 
       memset(command_line, '\0', sizeof(command_line));
     }
 
     /* Convert raw rx to long values and store in array */
     Force_Sensor_Read_Rx();
-
-#ifdef OLED_DEBUG
-    uint8_t count = 0;
-    float *levelstofree = Stepper_GetSpeedLevel(0, stepper[1].stepSpeedLimit, &count);
-    // char msg[OLED_INFO_SIZE];
-    // memset(msg, '\0', sizeof(msg));
-    // snprintf(msg, sizeof(msg), "%.1f %d:", stepper[1].stepSpeedLimit, count);
-
-    // for (uint8_t i = 0; i < min(count, 3); i++)
-    // {
-    //   char buf[8];
-    //   snprintf(buf, sizeof(buf), "%.1f,", levelstofree[i]);
-    //   strcat(msg, buf);
-    // }
-    free(levelstofree);
-    //OLED_Update_Info(msg);
-#endif // OLED_DEBUG
 
     osDelay(STATE_UPDATE_DELAY_MS);
   }

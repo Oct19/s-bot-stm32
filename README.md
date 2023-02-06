@@ -17,7 +17,6 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * xTimerStart does not work, need to use xTimerChangePeriodFromISR() even from task
 * Force sensor box stuck in 485 auto upload readings mode. Reset the box wont help; box is not responding to any commands
 * If multipule UART_Tansmit_DMA functions were called, the later ones are sometimes not working
-* Stepper_GetSpeedLevel: when spped is negative and levels >3, freeze
 
 ## TODO
 
@@ -43,6 +42,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * Some serial port monitor software is inconsistent at higher baudrate. Enable USB_ECHO to check communication
 * OLED task delays timer callback, fixed by switching to driver with DMA mode
 * Force sensor: Rx DMA read to idle should restart in UART callback, but failed after running for 10mins at 20Hz. Cannot find the bug. Solution:move Rx DMA restart inside Tx timer callback
+* Stepper_GetSpeedLeveltofree: when spped is negative and levels >3, freeze (memory size bug: malloc (size * sizeof(float)));)
 
 ## References
 

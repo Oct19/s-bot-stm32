@@ -38,7 +38,7 @@
 // Conversions
 #define MM_PER_INCH (25.40f)
 #define INCH_PER_MM (0.0393701f)
-#define TICKS_PER_MICROSECOND (SystemCoreClock/1000000)
+#define TICKS_PER_MICROSECOND (SystemCoreClock / 1000000)
 
 // math constant
 #define pi 3.1415926
@@ -71,6 +71,15 @@ inline uint16_t htons(const uint16_t v)
 
 #define ARRAY_LEN(x) (sizeof(x) / sizeof((*x)))
 
+#define reverse_array(data, size) _Generic((data), float *            \
+                                           : reverse_float, int16_t * \
+                                           : reverse_int16, int32_t * \
+                                           : reverse_int32, default   \
+                                           : reverse_int)(data, size)
+void reverse_float(float *data, uint8_t n);
+void reverse_int16(int16_t *data, uint8_t n);
+void reverse_int32(int32_t *data, uint8_t n);
+void reverse_int(int *data, uint8_t n);
 // Read a floating point value from a string. Line points to the input buffer, char_counter
 // is the indexer pointing to the current character of the line, while float_ptr is
 // a pointer to the result variable. Returns true when it succeeds

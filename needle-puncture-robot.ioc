@@ -1,4 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
+CAD.formats=
+CAD.pinconfig=
+CAD.provider=
 Dma.I2C2_TX.3.Direction=DMA_MEMORY_TO_PERIPH
 Dma.I2C2_TX.3.FIFOMode=DMA_FIFOMODE_DISABLE
 Dma.I2C2_TX.3.Instance=DMA1_Stream7

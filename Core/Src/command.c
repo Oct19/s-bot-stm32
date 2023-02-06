@@ -202,7 +202,7 @@ uint8_t Execute_Command(uint8_t *line)
                 CMD_ERROR_FLAG = CMD_VALUE_NOT_INTEGER;
                 goto free;
             }
-            uint8_t pos = atoi((char *)words[2]);
+            int32_t pos = atoi((char *)words[2]);
             if (pos < STEP_POS_MIN || pos > STEP_POS_MAX)
             {
                 CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
@@ -211,10 +211,9 @@ uint8_t Execute_Command(uint8_t *line)
             stepper[index].stepPos_target = pos;
             if (word_count == 3)
             {
-                // no speed or accel input
-                stepper[index].stepSpeedLimit = STEP_RPM_DEFAULT;
-                stepper[index].stepAcc = STEP_ACC_DEFAULT;
-                // step_run(s[index]);
+                stepper[index].stepRPMLimit = STEP_RPM_DEFAULT;
+                if (!stepper[index].stepUpdating)
+                    Stepper_Update(&stepper[index]);
                 goto free;
             }
 
@@ -231,24 +230,10 @@ uint8_t Execute_Command(uint8_t *line)
                 CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
                 goto free;
             }
-            stepper[index].stepSpeedLimit = rpm;
+            stepper[index].stepRPMLimit = rpm;
+            if (!stepper[index].stepUpdating)
+                Stepper_Update(&stepper[index]);
             goto free;
-
-            // // check accel
-            // if (string_number_type(words[4]) == IsNotNumber)
-            // {
-            //     CMD_ERROR_FLAG = CMD_VALUE_NOT_NUMBER;
-            //     goto free;
-            // }
-            // float accel = atof((char *)words[4]);
-            // if (accel < STEP_ACC_MIN || accel > STEP_ACC_MAX)
-            // {
-            //     CMD_ERROR_FLAG = CMD_VALUE_OUT_OF_RANGE;
-            //     goto free;
-            // }
-            // stepper[index].stepAcc = accel;
-            // // step_run(s[index]);
-            // goto free;
         default:;
             CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;
             goto free;

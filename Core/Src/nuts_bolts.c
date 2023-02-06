@@ -386,3 +386,43 @@ STRING_NUM_TYPE_HandleTypedef string_number_type(char *string)
     return IsFloat;
   return IsInteger;
 }
+
+void reverse_float(float *data, uint8_t n)
+{
+    for (int i = 0; i < n / 2; i++)
+    {
+        float tmp = data[i];
+        data[i] = data[n - 1 - i];
+        data[n - 1 - i] = tmp;
+    }
+}
+
+void reverse_int16(int16_t *data, uint8_t n)
+{
+    for (int i = 0; i < n / 2; i++)
+    {
+        int16_t tmp = data[i];
+        data[i] = data[n - 1 - i];
+        data[n - 1 - i] = tmp;
+    }
+}
+
+void reverse_int32(int32_t *data, uint8_t n)
+{
+    for (int i = 0; i < n / 2; i++)
+    {
+        int32_t tmp = data[i];
+        data[i] = data[n - 1 - i];
+        data[n - 1 - i] = tmp;
+    }
+}
+
+void reverse_int(int *data, uint8_t n)
+{
+    for (int i = 0; i < n / 2; i++)
+    {
+        int tmp = data[i];
+        data[i] = data[n - 1 - i];
+        data[n - 1 - i] = tmp;
+    }
+}

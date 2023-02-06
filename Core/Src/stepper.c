@@ -9,9 +9,44 @@
 
 #include "robot.h"
 
-void Stepper_PostInit(Stepper_HandleTypeDef * s);
+static void Stepper_PostInit(Stepper_HandleTypeDef *s);
+static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s);
+static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s);
+static void Stepper_GetStepPositionIndex(int32_t *num_of_steps, uint8_t count,
+                                         int32_t step_offset, int32_t *stepPos_index);
+int32_t Stepper_SumSteps(int32_t *stepLevels, uint8_t count);
 
 Stepper_HandleTypeDef stepper[STEP_NUM];
+
+void Stepper(void *argument)
+{
+  // HAL_TIM_PWM_Start_DMA();
+  for (;;)
+  {
+    // timer_value = __HAL_TIM_GET_COUNTER(&htim1);
+
+    osDelay(1);
+    __HAL_TIM_SET_COUNTER(&htim2, 0);
+    HAL_TIM_OnePulse_Start(&htim2, TIM_CHANNEL_1);
+    // HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);
+
+#ifdef OLED_DEBUG
+
+    uint8_t count = 3;
+    char msg[OLED_INFO_SIZE];
+    memset(msg, '\0', sizeof(msg));
+    for (uint8_t i = 0; i < min(count, 3); i++)
+    {
+      char buf[8];
+      snprintf(buf, sizeof(buf), "%.1f,", stepper[1].stepRPM_level[i]);
+      // snprintf(buf, sizeof(buf), "%d,", stepLevels[i]);
+
+      strcat(msg, buf);
+    }
+    OLED_Update_Info(msg);
+#endif // OLED_DEBUG
+  }
+}
 
 void Stepper_Init(void)
 {
@@ -22,23 +57,7 @@ void Stepper_Init(void)
     Stepper_PostInit(&stepper[i]);
   }
 }
-void Stepper_Reset(Stepper_HandleTypeDef *s)
-{
-
-  s->stepAcc = STEP_ACC_DEFAULT;
-  s->stepSpeedLimit = STEP_RPM_DEFAULT;
-  s->stepPos_target = 0;
-
-  s->stepPos = 0;
-
-  memset(s->step_map_index, 0, sizeof(s->step_map_index));
-
-  memset(s->stepENA_map, STEP_DISABLE, sizeof(s->stepENA_map));
-  memset(s->stepDIR_map, STEP_CW, sizeof(s->stepDIR_map));
-  memset(s->stepARR_map, STEP_ARR_DEFAULT, sizeof(s->stepARR_map));
-}
-
-void Stepper_PostInit(Stepper_HandleTypeDef * s)
+static void Stepper_PostInit(Stepper_HandleTypeDef *s)
 {
   switch (s->Index)
   {
@@ -69,57 +88,237 @@ void Stepper_PostInit(Stepper_HandleTypeDef * s)
 #endif // STEP_REST
 }
 
-// void Stepper_GetSteps(float SpeedLevel, float stepACC)
-
-void Stepper_Start(Stepper_HandleTypeDef s)
+void Stepper_Reset(Stepper_HandleTypeDef *s)
 {
-  HAL_TIM_PWM_Start_IT(&s.timer_handle, s.timer_channel);
+
+  s->stepAcc = STEP_ACC_DEFAULT;
+  s->stepRPMLimit = STEP_RPM_DEFAULT;
+  s->stepPos_target = 0;
+
+  s->stepPos = 0;
+
+  memset(s->stepPos_index, 0, sizeof(s->stepPos_index));
+
+  memset(s->stepENA_level, STEP_DISABLE, sizeof(s->stepENA_level));
+  memset(s->stepDIR_level, STEP_CW, sizeof(s->stepDIR_level));
+  memset(s->stepARR_level, STEP_ARR_DEFAULT, sizeof(s->stepARR_level));
 }
 
-void Stepper(void *argument)
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @TODO: write callback function
+ */
+void Stepper_Start(Stepper_HandleTypeDef *s)
 {
-  // HAL_TIM_PWM_Start_DMA();
-  for (;;)
-  {
-    // timer_value = __HAL_TIM_GET_COUNTER(&htim1);
+  // the pwm should toggle near the end of the pwm cycle,
+  // give engouth time for ENA and DIR pin to update
+  HAL_GPIO_WritePin(s->ENA_Port, s->ENA_Pin, s->stepENA_level[0]);
 
-    osDelay(1);
-    __HAL_TIM_SET_COUNTER(&htim2, 0);
-    HAL_TIM_OnePulse_Start(&htim2, TIM_CHANNEL_1);
-    // HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start_IT(&s->timer_handle, s->timer_channel);
+}
+
+static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s)
+{
+  int32_t start_pos = s->stepPos;
+  if (s->update_level)
+    start_pos = s->stepPos_index[s->update_level - 1];
+
+  int32_t step_diff = s->stepPos_target - start_pos;
+  float delta_t = STEP_RPM_LEVEL / s->stepAcc;
+
+  if (step_diff == 0)
+  {
+    /**
+     * Case 0: No need to rotate
+     */
+    s->stepRPM_level[s->update_level] = 0;
+    return;
+  }
+
+  if (abs(step_diff) <= STEP_RPM_MIN * delta_t)
+  {
+    /**
+     * Case 1: small travel distance, rotate at constant speed: STEP_RPM_MIN
+     * ^
+     * |
+     * |
+     * |
+     * |____
+     * *------------------->
+     */
+    s->stepRPM_level[s->update_level] = step_diff > 0 ? STEP_RPM_MIN : -STEP_RPM_MIN;
+    s->stepPos_index[s->update_level] = s->stepPos_index[s->update_level - 1] + step_diff;
+    s->update_level++;
+    s->stepRPM_level[s->update_level] = 0;
+    return;
+  }
+
+  /**
+   * Case 2: Stepper will accelerate, cruise, and decelrate to stop;
+   *  stepRPMLimit maynot reached if travel distance is small
+   * ^
+   * |
+   * |   _
+   * |  / \
+   * | /   \
+   * *------------------->
+   * */
+  float speed_level[STEP_LEVEL_SIZE];
+  uint8_t levels_to_max_speed;
+  Stepper_GetSpeedLevels(s, 0, s->stepRPMLimit, &levels_to_max_speed, speed_level);
+
+  int32_t num_of_steps[levels_to_max_speed];
+  Stepper_GetStepLevels(s, levels_to_max_speed, speed_level, num_of_steps);
+
+  int32_t stepPos_index[levels_to_max_speed];
+  Stepper_GetStepPositionIndex(num_of_steps, levels_to_max_speed, s->stepPos, stepPos_index);
+
+  for (uint8_t i = levels_to_max_speed; i >= 2; i--)
+  {
+    int32_t stepSumAccel = stepPos_index[levels_to_max_speed - 1];
+    int32_t stepSumDecel = stepPos_index[levels_to_max_speed - 2];
+    int32_t stepSum = stepSumAccel + stepSumDecel;
+    if (abs(stepSum) < abs(step_diff))
+      break;
+    levels_to_max_speed--;
+  }
+
+  // Acceleration
+  memcpy(s->stepRPM_level + s->update_level, speed_level, levels_to_max_speed * sizeof(float));
+  memcpy(s->stepPos_index + s->update_level, stepPos_index, levels_to_max_speed * sizeof(num_of_steps[0]));
+  for (int i = 0; i < levels_to_max_speed; i++)
+  {
+    s->stepPos_index[s->update_level + i] += s->stepPos;
+  }
+
+  s->update_level += levels_to_max_speed - 1; // Overlap 1 speed level with deceleration phase
+
+  // Deceleration
+  reverse_array(speed_level, levels_to_max_speed);
+  reverse_array(num_of_steps, levels_to_max_speed);
+  Stepper_GetStepPositionIndex(num_of_steps, levels_to_max_speed, s->stepPos_index[s->update_level - 1], stepPos_index);
+  memcpy(s->stepRPM_level + s->update_level, speed_level, (levels_to_max_speed) * sizeof(float));
+  memcpy(s->stepPos_index + s->update_level, stepPos_index, (levels_to_max_speed) * sizeof(num_of_steps[0]));
+  // Get cruise distance to offset deceleration phase
+  step_diff = s->stepPos_target - s->stepPos_index[s->update_level + levels_to_max_speed - 1];
+  for (int i = 0; i < levels_to_max_speed; i++)
+  {
+    s->stepPos_index[s->update_level + i] += step_diff;
+  }
+
+  s->update_level += levels_to_max_speed;
+}
+
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @TODO: Case 1
+ */
+static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s)
+{
+  float speed_level[STEP_LEVEL_SIZE];
+  int32_t num_of_steps[STEP_LEVEL_SIZE];
+  uint8_t levels_to_stop;
+
+  int32_t step_diff = s->stepPos_target - s->stepPos;
+
+  Stepper_GetSpeedLevels(s, s->stepRPM, 0, &levels_to_stop, speed_level);
+  Stepper_GetStepLevels(s, levels_to_stop, speed_level, num_of_steps);
+  int32_t steps_to_stop = Stepper_SumSteps(num_of_steps, levels_to_stop);
+
+  bool initial_moving_towards_target = ((steps_to_stop < 0) == (step_diff < 0));
+  if (abs(steps_to_stop) < abs(step_diff) && initial_moving_towards_target)
+  {
+    // Case 1: Decel to RPM_Limit, or accel to RPM_Limit or lower
+  }
+  else
+  {
+    // Case 1: decelrate to stop, then proceed to stationary update
+    memcpy(s->stepRPM_level, speed_level, levels_to_stop * sizeof(float));
+    int32_t pos_index[STEP_LEVEL_SIZE];
+    Stepper_GetStepPositionIndex(num_of_steps, levels_to_stop, s->stepPos, pos_index);
+    s->update_level = levels_to_stop;
+    Stepper_StationaryUpdate(s);
   }
 }
 
 /**
- * @brief free(stepSpeedLevel)
- *
- * @param speed_start
- * @param speed_end
- * @param count
- * @return float*
+ * @brief stepPos may update during calculation, but it is ok!
+ * stepPos is absolute, the generated step_level_index is also based on absolute position
+ * @param s stepper handle
+ * @TODO: Update ARR, DIR, ENA after generate stepRPM and stepPos_index
  */
-float *Stepper_GetSpeedLevel(float speed_start, float speed_end, uint8_t *count)
+void Stepper_Update(Stepper_HandleTypeDef *s)
 {
-  uint8_t size;
-  if (speed_start == speed_end)
-    size = 1;
-  else
-    size = 2 + (int)abs(((speed_start - speed_end) / STEP_RPM_LEVEL));
+  s->stepUpdating = true;
+  s->update_level = 0;
 
+  // Reset intermediate and output values
+  // memset(s->stepPos_index, 0, sizeof(s->stepPos_index));
+  // memset(s->stepRPM_level, 0, sizeof(s->stepRPM_level));
+  // memset(s->stepENA_level, 0, sizeof(s->stepENA_level));
+  // memset(s->stepDIR_level, 0, sizeof(s->stepDIR_level));
+  // memset(s->stepARR_level, 0, sizeof(s->stepARR_level));
 
-  float *stepSpeedLevel = malloc(size);
-
-  if (speed_start == speed_end)
-    stepSpeedLevel[0] = speed_start;
+  if (s->stepRPM == 0)
+  {
+    Stepper_StationaryUpdate(s);
+  }
   else
   {
-    // linear series
-    float speed_level = (speed_end - speed_start) / (size - 1);
-    for (int i = 0; i < size; i++)
-      stepSpeedLevel[i] = speed_start + i * speed_level;
+    Stepper_RunningUpdate(s);
   }
-  *count = size;
-  return stepSpeedLevel;
+
+  // update arr, dir, ena array
+  // ...
+  s->stepUpdating = false;
+
+  Stepper_Start(s);
+}
+
+void Stepper_GetSpeedLevels(Stepper_HandleTypeDef *s, float speed_start, float speed_end,
+                            uint8_t *size, float *speed_level)
+{
+  float speed_diff = (speed_end - speed_start);
+  uint8_t count = 1 + (int)abs(speed_diff / STEP_RPM_LEVEL);
+  *size = count;
+
+  speed_level[count - 1] = speed_end;
+
+  for (int i = 0; i < count - 1; i++)
+  {
+    float buf = speed_start + (i + 1) * speed_diff / count;
+    speed_level[i] = abs(buf) < STEP_RPM_MIN ? 0 : buf;
+  }
+}
+
+void Stepper_GetStepLevels(Stepper_HandleTypeDef *s, uint8_t size, float *speed_level, int32_t *num_of_steps)
+{
+  float delta_t = STEP_RPM_LEVEL / s->stepAcc;
+  for (uint8_t i = 0; i < size; i++)
+  {
+    num_of_steps[i] = delta_t * speed_level[i] * STEP_PER_REV;
+  }
+}
+int32_t Stepper_SumSteps(int32_t *num_of_steps, uint8_t count)
+{
+  int32_t stepSum = 0;
+  for (uint8_t i = 0; i < count; i++)
+    stepSum = stepSum + num_of_steps[count];
+  return stepSum;
+}
+
+static void Stepper_GetStepPositionIndex(int32_t *num_of_steps, uint8_t count,
+                                         int32_t step_offset, int32_t *stepPos_index)
+{
+  stepPos_index[0] = num_of_steps[0] + step_offset;
+  for (uint8_t i = 1; i < count; i++)
+  {
+    stepPos_index[i] = stepPos_index[i - 1] + num_of_steps[i];
+  }
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
@@ -369,4 +568,33 @@ volatile uint8_t nextStepperFlag = 0;
 //   Fcurrent = FStart - (FStart - FStop) * deno;
 
 //   return Fcurrent;
+// }
+
+// void Stepper_GetStepLevel(SpeedInfo_HandleTypeDef *si)
+// {
+//   float delta_t = STEP_RPM_LEVEL / si->acceleration;
+//   for (uint8_t i = 0; i < si->size; i++)
+//   {
+//     si->number_of_steps[i] = delta_t * si->speed_level[i] * STEP_PER_REV;
+//   }
+// }
+// /**
+//  * @brief
+//  *
+//  * if speed_difference < STEP_RPM_LEVEL, return speed_end;
+//  * for linear speed map, if abs(speed) < STEP_RPM_MIN , speed set to 0
+//  */
+// void Stepper_GetSpeedLevel(SpeedInfo_HandleTypeDef *si)
+// {
+//   float speed_diff = (si->speed_end - si->speed_start);
+//   uint8_t count = 1 + (int)abs(speed_diff / STEP_RPM_LEVEL);
+//   si->size = count;
+
+//   si->speed_level[count - 1] = si->speed_end;
+
+//   for (int i = 0; i < count - 1; i++)
+//   {
+//     float buf = si->speed_start + (i + 1) * speed_diff / count;
+//     si->speed_level[i] = abs(buf) < STEP_RPM_MIN ? 0 : buf;
+//   }
 // }

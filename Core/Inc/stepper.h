@@ -47,7 +47,7 @@ extern "C"
 #define t_prescaler 180
 #define STEP_ARR_DEFAULT (F_CPU / (t_prescaler * STEP_RPM_DEFAULT * STEP_PER_REV / 60))
 
-#define STEP_MAP_SIZE ((int)(3 * STEP_RPM_MAX / STEP_RPM_LEVEL))
+#define STEP_LEVEL_SIZE ((int)(3 * STEP_RPM_MAX / STEP_RPM_LEVEL))
 
     typedef struct _Stepper_HandleTypeDef
     {
@@ -65,36 +65,45 @@ extern "C"
         uint32_t DIR_Pin;
 
         // command parameters
-        int16_t stepPos_target;
-        float stepSpeedLimit;
+        int32_t stepPos_target;
+        float stepRPMLimit;
         float stepAcc;
 
         // variables update at every step
-        volatile int16_t stepPos; // current position of stepper (total of all movements taken so far)
+        volatile int32_t stepPos; // current position of stepper (total of all movements taken so far)
 
-        int16_t step_map_index[STEP_MAP_SIZE]; // step index for mapping
+        // variables update at every level
+        volatile float stepRPM;
+
+        // intermediate values
+        uint8_t update_level;
+        int32_t stepPos_index[STEP_LEVEL_SIZE]; // step index for mapping
+        float stepRPM_level[STEP_LEVEL_SIZE];
 
         // mapping for driver control
-        bool stepENA_map[STEP_MAP_SIZE];     // power
-        bool stepDIR_map[STEP_MAP_SIZE];     // direction
-        uint16_t stepARR_map[STEP_MAP_SIZE]; // interval
+        bool stepENA_level[STEP_LEVEL_SIZE];     // power
+        bool stepDIR_level[STEP_LEVEL_SIZE];     // direction
+        uint32_t stepARR_level[STEP_LEVEL_SIZE]; // interval
 
         // for system checking
-        bool running;
+        bool stepUpdating;
 
     } Stepper_HandleTypeDef;
 
     extern Stepper_HandleTypeDef stepper[STEP_NUM];
 
+    void Stepper_Init(void);
+    void Stepper_Reset(Stepper_HandleTypeDef *s);
+    void Stepper_Update(Stepper_HandleTypeDef *s);
+    void Stepper_GetSpeedLevels(Stepper_HandleTypeDef *s, float speed_start, float speed_end,
+                                uint8_t *size, float *speed_level);
+    void Stepper_GetStepLevels(Stepper_HandleTypeDef *s, uint8_t size, float *speed_level, int32_t *stepnum_level);
+    void Stepper_Start(Stepper_HandleTypeDef *s);
+
     void step_simplest(void);
     void step_constantSpeed(int steps, uint8_t direction, uint8_t delay);
     void step_simpleAccel(int steps);
     void step_constantAccel();
-
-    void Stepper_Init(void);
-    void Stepper_Reset(Stepper_HandleTypeDef * s);
-    void Step_ISR();
-    float *Stepper_GetSpeedLevel(float speed_start, float speed_end, uint8_t *count);
 
 #ifdef __cplusplus
 }
