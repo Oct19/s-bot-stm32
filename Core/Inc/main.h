@@ -102,6 +102,8 @@ void Error_Handler(void);
 #define LIMIT_A_Pin GPIO_PIN_7
 #define LIMIT_A_GPIO_Port GPIOB
 #define LIMIT_A_EXTI_IRQn EXTI9_5_IRQn
+#define LUCKY_Pin GPIO_PIN_8
+#define LUCKY_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

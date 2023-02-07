@@ -31,7 +31,7 @@ Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 * [ ] Use FreeRTOS queue, Semaphore, Event, etc
 * [ ] EEPROM
 * [X] Add logic 2 catpure
-* [ ] https://blog.csdn.net/weixin_47407066/article/details/124657473
+* [ ] <https://blog.csdn.net/weixin_47407066/article/details/124657473>
 
 ## Fixed Issue
 

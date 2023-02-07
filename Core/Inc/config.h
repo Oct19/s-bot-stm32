@@ -5,12 +5,11 @@
 extern "C"
 {
 #endif
-
 /* Debug */
 
 /* Select only one to show */
 // #define  OLED_SHOW_HASH
-#define OLED_DEBUG
+// #define OLED_DEBUG
 
 // STATE
 #define STATE_UPDATE_DELAY_MS 10
@@ -49,7 +48,7 @@ extern "C"
 #define STEP_RPM_MAX 300
 #define STEP_RPM_MIN 1
 #define STEP_RPM_DEFAULT 100 // has to be integer since precompiler cannot compare float
-#define STEP_RPM_LEVEL 10     // integer only. speed level resolution during accel and decel
+#define STEP_RPM_LEVEL 10    // integer only. speed level resolution during accel and decel
 // acceleration
 #define STEP_ACC_MAX 600
 #define STEP_ACC_MIN 1
@@ -58,7 +57,7 @@ extern "C"
 #define STEP_REST // disable stepper when motion is finished
 #ifdef STEP_REST
 #define STEP_DWELL_MS 10 // keep powered for sometime to prevent shifting after stop
-#endif                   // STEP_REST
+#endif // STEP_REST
 // varify stepper config values
 #if STEP_RPM_DEFAULT > STEP_RPM_MAX || STEP_RPM_DEFAULT < STEP_RPM_MIN
 #error "STEP_RPM_DEFAULT value invalid"

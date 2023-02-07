@@ -44,8 +44,8 @@ extern "C"
 #define STEP_CW 0
 #define STEP_CCW 1
 // ARR default
-#define t_prescaler 180
-#define STEP_ARR_DEFAULT (F_CPU / (t_prescaler * STEP_RPM_DEFAULT * STEP_PER_REV / 60))
+#define T_PRESCALER 180
+#define STEP_ARR_DEFAULT (F_CPU / (T_PRESCALER * STEP_RPM_DEFAULT * STEP_PER_REV / 60))
 
 #define STEP_LEVEL_SIZE ((int)(3 * STEP_RPM_MAX / STEP_RPM_LEVEL))
 
@@ -81,8 +81,6 @@ extern "C"
         float stepRPM_level[STEP_LEVEL_SIZE];
 
         // mapping for driver control
-        bool stepENA_level[STEP_LEVEL_SIZE];     // power
-        bool stepDIR_level[STEP_LEVEL_SIZE];     // direction
         uint32_t stepARR_level[STEP_LEVEL_SIZE]; // interval
 
         // for system checking
@@ -99,6 +97,7 @@ extern "C"
                                 uint8_t *size, float *speed_level);
     void Stepper_GetStepLevels(Stepper_HandleTypeDef *s, uint8_t size, float *speed_level, int32_t *stepnum_level);
     void Stepper_Start(Stepper_HandleTypeDef *s);
+    void Stepper_ISR(Stepper_HandleTypeDef *s);
 
     void step_simplest(void);
     void step_constantSpeed(int steps, uint8_t direction, uint8_t delay);

@@ -232,7 +232,9 @@ uint8_t Execute_Command(uint8_t *line)
             }
             stepper[index].stepRPMLimit = rpm;
             if (!stepper[index].stepUpdating)
+            {
                 Stepper_Update(&stepper[index]);
+            }
             goto free;
         default:;
             CMD_ERROR_FLAG = CMD_TOO_MANY_PARAMETERS;

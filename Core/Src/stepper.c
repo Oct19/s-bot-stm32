@@ -14,7 +14,6 @@ static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s);
 static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s);
 static void Stepper_GetStepPositionIndex(int32_t *num_of_steps, uint8_t count,
                                          int32_t step_offset, int32_t *stepPos_index);
-int32_t Stepper_SumSteps(int32_t *stepLevels, uint8_t count);
 
 Stepper_HandleTypeDef stepper[STEP_NUM];
 
@@ -99,23 +98,22 @@ void Stepper_Reset(Stepper_HandleTypeDef *s)
 
   memset(s->stepPos_index, 0, sizeof(s->stepPos_index));
 
-  memset(s->stepENA_level, STEP_DISABLE, sizeof(s->stepENA_level));
-  memset(s->stepDIR_level, STEP_CW, sizeof(s->stepDIR_level));
   memset(s->stepARR_level, STEP_ARR_DEFAULT, sizeof(s->stepARR_level));
 }
 
 /**
- * @brief 
- * 
- * @param s 
+ * @brief
+ *
+ * @param s
  * @TODO: write callback function
  */
 void Stepper_Start(Stepper_HandleTypeDef *s)
 {
   // the pwm should toggle near the end of the pwm cycle,
   // give engouth time for ENA and DIR pin to update
-  HAL_GPIO_WritePin(s->ENA_Port, s->ENA_Pin, s->stepENA_level[0]);
-
+  s->update_level = 0;
+  HAL_GPIO_WritePin(s->ENA_Port, s->ENA_Pin, STEP_ENABLE);
+  HAL_GPIO_WritePin(s->DIR_Port, s->DIR_Pin, s->stepRPM_level[0] > 0);
   HAL_TIM_PWM_Start_IT(&s->timer_handle, s->timer_channel);
 }
 
@@ -173,12 +171,12 @@ static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s)
   Stepper_GetStepLevels(s, levels_to_max_speed, speed_level, num_of_steps);
 
   int32_t stepPos_index[levels_to_max_speed];
-  Stepper_GetStepPositionIndex(num_of_steps, levels_to_max_speed, s->stepPos, stepPos_index);
+  Stepper_GetStepPositionIndex(num_of_steps, levels_to_max_speed, start_pos, stepPos_index);
 
   for (uint8_t i = levels_to_max_speed; i >= 2; i--)
   {
-    int32_t stepSumAccel = stepPos_index[levels_to_max_speed - 1];
-    int32_t stepSumDecel = stepPos_index[levels_to_max_speed - 2];
+    int32_t stepSumAccel = stepPos_index[levels_to_max_speed - 1] - start_pos;
+    int32_t stepSumDecel = stepPos_index[levels_to_max_speed - 2] - start_pos;
     int32_t stepSum = stepSumAccel + stepSumDecel;
     if (abs(stepSum) < abs(step_diff))
       break;
@@ -190,7 +188,7 @@ static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s)
   memcpy(s->stepPos_index + s->update_level, stepPos_index, levels_to_max_speed * sizeof(num_of_steps[0]));
   for (int i = 0; i < levels_to_max_speed; i++)
   {
-    s->stepPos_index[s->update_level + i] += s->stepPos;
+    s->stepPos_index[s->update_level + i] += start_pos;
   }
 
   s->update_level += levels_to_max_speed - 1; // Overlap 1 speed level with deceleration phase
@@ -212,9 +210,9 @@ static void Stepper_StationaryUpdate(Stepper_HandleTypeDef *s)
 }
 
 /**
- * @brief 
- * 
- * @param s 
+ * @brief
+ *
+ * @param s
  * @TODO: Case 1
  */
 static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s)
@@ -227,8 +225,9 @@ static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s)
 
   Stepper_GetSpeedLevels(s, s->stepRPM, 0, &levels_to_stop, speed_level);
   Stepper_GetStepLevels(s, levels_to_stop, speed_level, num_of_steps);
-  int32_t steps_to_stop = Stepper_SumSteps(num_of_steps, levels_to_stop);
-
+  int32_t stepPos_index[levels_to_stop];
+  Stepper_GetStepPositionIndex(num_of_steps, levels_to_stop, s->stepPos, stepPos_index);
+  int32_t steps_to_stop = stepPos_index[levels_to_stop] - s->stepPos;
   bool initial_moving_towards_target = ((steps_to_stop < 0) == (step_diff < 0));
   if (abs(steps_to_stop) < abs(step_diff) && initial_moving_towards_target)
   {
@@ -238,8 +237,6 @@ static void Stepper_RunningUpdate(Stepper_HandleTypeDef *s)
   {
     // Case 1: decelrate to stop, then proceed to stationary update
     memcpy(s->stepRPM_level, speed_level, levels_to_stop * sizeof(float));
-    int32_t pos_index[STEP_LEVEL_SIZE];
-    Stepper_GetStepPositionIndex(num_of_steps, levels_to_stop, s->stepPos, pos_index);
     s->update_level = levels_to_stop;
     Stepper_StationaryUpdate(s);
   }
@@ -256,24 +253,23 @@ void Stepper_Update(Stepper_HandleTypeDef *s)
   s->stepUpdating = true;
   s->update_level = 0;
 
-  // Reset intermediate and output values
-  // memset(s->stepPos_index, 0, sizeof(s->stepPos_index));
-  // memset(s->stepRPM_level, 0, sizeof(s->stepRPM_level));
-  // memset(s->stepENA_level, 0, sizeof(s->stepENA_level));
-  // memset(s->stepDIR_level, 0, sizeof(s->stepDIR_level));
-  // memset(s->stepARR_level, 0, sizeof(s->stepARR_level));
-
   if (s->stepRPM == 0)
-  {
     Stepper_StationaryUpdate(s);
-  }
   else
-  {
     Stepper_RunningUpdate(s);
-  }
 
+  s->update_level--;
   // update arr, dir, ena array
   // ...
+
+  int c = F_CPU / (T_PRESCALER * STEP_PER_REV);
+  for (int i = 0; i < s->update_level; i++)
+  {
+    if (s->stepRPM_level[i] == 0)
+    {
+      s->stepARR_level[i] = c / s->stepRPM_level[i];
+    }
+  }
   s->stepUpdating = false;
 
   Stepper_Start(s);
@@ -290,8 +286,9 @@ void Stepper_GetSpeedLevels(Stepper_HandleTypeDef *s, float speed_start, float s
 
   for (int i = 0; i < count - 1; i++)
   {
-    float buf = speed_start + (i + 1) * speed_diff / count;
-    speed_level[i] = abs(buf) < STEP_RPM_MIN ? 0 : buf;
+    speed_level[i] = speed_start + (i + 1) * speed_diff / count;
+    if (abs(speed_level[i] < STEP_RPM_MIN))
+      speed_level[i] = speed_level[i] > 0 ? STEP_RPM_MIN : -STEP_RPM_MIN;
   }
 }
 
@@ -302,13 +299,6 @@ void Stepper_GetStepLevels(Stepper_HandleTypeDef *s, uint8_t size, float *speed_
   {
     num_of_steps[i] = delta_t * speed_level[i] * STEP_PER_REV;
   }
-}
-int32_t Stepper_SumSteps(int32_t *num_of_steps, uint8_t count)
-{
-  int32_t stepSum = 0;
-  for (uint8_t i = 0; i < count; i++)
-    stepSum = stepSum + num_of_steps[count];
-  return stepSum;
 }
 
 static void Stepper_GetStepPositionIndex(int32_t *num_of_steps, uint8_t count,
@@ -321,13 +311,42 @@ static void Stepper_GetStepPositionIndex(int32_t *num_of_steps, uint8_t count,
   }
 }
 
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @TODO: delay timer for stepper dwelling
+ */
+void Stepper_ISR(Stepper_HandleTypeDef *s)
+{
+  s->stepPos++;
+  if (s->stepPos >= s->stepPos_target)
+  {
+    HAL_TIM_PWM_Stop_IT(&s->timer_handle,s->timer_channel);
+    // One pulse delay timer for step dwelling
+    HAL_GPIO_WritePin(&s->ENA_Port, s->ENA_Pin, STEP_DISABLE);
+  }
+  if (s->stepPos >= s->stepPos_index[s->update_level])
+  {
+    s->update_level++;
+    bool dir = s->stepRPM_level[s->update_level] > 0;
+    HAL_GPIO_WritePin(s->DIR_Port, s->DIR_Pin, dir);
+    s->timer_handle.Instance->ARR = s->stepARR_level[s->update_level];
+  }
+}
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim->Instance == TIM1)
+  for (int i = 0; i < STEP_NUM; i++)
   {
-
-    TIM1->ARR = TIM1->ARR + 100;
+    if (htim->Instance == stepper[i].timer_handle.Instance)
+    {
+      Stepper_ISR(&stepper[i]);
+    }
   }
+  // if (htim->Instance == TIM1)
+  // {
+  //   TIM1->ARR = TIM1->ARR + 100;
+  // }
 }
 
 /****************************************************************
@@ -597,4 +616,12 @@ volatile uint8_t nextStepperFlag = 0;
 //     float buf = si->speed_start + (i + 1) * speed_diff / count;
 //     si->speed_level[i] = abs(buf) < STEP_RPM_MIN ? 0 : buf;
 //   }
+// }
+
+// int32_t Stepper_SumSteps(int32_t *num_of_steps, uint8_t count)
+// {
+//   int32_t stepSum = 0;
+//   for (uint8_t i = 0; i < count; i++)
+//     stepSum = stepSum + num_of_steps[count];
+//   return stepSum;
 // }
