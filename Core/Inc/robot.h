@@ -9,7 +9,7 @@ extern "C"
 
 
 /* Version system */
-#define ROBOT_NAME "needle-puncture-robot"
+#define ROBOT_NAME "s-bot-stm32"
 #define ROBOT_VERSION 1.0
 
 /* Define standard libraries used by robot */

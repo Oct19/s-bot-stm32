@@ -1,8 +1,8 @@
-# NEEDLE-PUNCTURE-ROBOT
+# s-bot-stm32
 
 Cai Dingkun [caidingkun@outlook.com](caidingkun@outlook.com)
 
-[Github](https://github.com/Oct19/needle-puncture-robot)
+[Github](https://github.com/Oct19/s-bot-stm32)
 
 ## Hardware
 

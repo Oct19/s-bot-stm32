@@ -1,7 +1,7 @@
 /**
- * @file force_sensor.h
- * @author Cai Dingkun <caidingkun@outlook.com>
- * @brief Code for force sensor and multi-channel transmitter
+ * @brief force sensor and multi-channel transmitter
+ * For sensor zeroing, calibration, and protocal, please refer 
+ * to manual and user note in doc/FORCE_SENSOR
  ****************************************************************
  * Force sensor
  * Part number: DYMH-106

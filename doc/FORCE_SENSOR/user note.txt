@@ -18,6 +18,10 @@
  * ************************************************
  * Temperature affects reading; temperature UP, readings DOWN
  * ************************************************
+ * Example4: Set RS485 mode (must set Baud rate to 115200 first)
+ * Tx: 011002BE00020400000002E1F6
+ * Rx: AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHHIIII XX (XX is CRC check)
+ * ************************************************
 
 // Force sensor box baudrate default 19200, can be configured as: 19200, 115200
 // At 115200, force sensor box has 10ms response delay
@@ -28,3 +32,5 @@
 2. 同样的485模式命令，发送尾数是2的时候，盒子进入16位主动模式，而不是说明书上写的32位主动模式
 3. 进入主动模式之后，盒子每间隔10ms发送一次9通道读数。此时盒子不再接受任何指令，094清零标定工具也连接不上盒子。
 4. 硬件重制盒子后，如果不进行参数设置（比如清零）而直接断电重启的话，盒子自动进入16位主动模式（不能接受任何指令）
+5. 修改波特率后，需要重启盒子
+6. 有时标定软件链接不上盒子，软件需要重新打开
